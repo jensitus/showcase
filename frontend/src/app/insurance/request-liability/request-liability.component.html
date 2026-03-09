@@ -1,0 +1,41 @@
+<h3>{{ 'INSURANCE.LIABILITY_TITLE' | translate }}</h3>
+<div class="row pt-3">
+  <div class="col-md-6">
+    <app-customer-card [customer]="customer" />
+  </div>
+</div>
+
+<app-payment-schedule (chosenInsuranceSum)="showChosenInsuranceSum($event)"
+                      (chosenPaymentSchedule)="showChosenPaymentSchedule($event)"
+                      (chosenCoverage)="showChosenCoverage($event)"
+                      (chosenAmount)="showChosenAmount($event)"
+                      (chosenPS)="showChosenPS($event)" />
+<div class="row pt-3">
+  <div class="col-md-6">
+      <div class="card">
+          <div class="card-header">
+              {{ 'INSURANCE.MONTHLY_INCOME' | translate }}
+          </div>
+          <div class="card-body">
+              <div class="row">
+                  <div class="col-md-2">
+                      <input id="sufficientIncome" type="checkbox" class="form-check-input" [(ngModel)]="sufficientIncome">
+                  </div>
+                  <div class="col-md-6">
+                      @if (sufficientIncome) {
+                          <b>></b> {{ 'INSURANCE.INCOME_OK' | translate }}
+                      } @else {
+                          <b><</b> {{ 'INSURANCE.INCOME_LOW' | translate }}
+                      }
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="row pt-3">
+  <div class="col-md-6">
+    <button class="btn btn-sm btn-outline-info" (click)="request_insurance()">{{ 'INSURANCE.REQUEST' | translate }}</button>
+  </div>
+</div>

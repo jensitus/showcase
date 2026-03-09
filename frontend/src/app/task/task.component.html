@@ -1,0 +1,135 @@
+@if (task === undefined) {
+    ... Loading
+} @else {
+
+    <h3>{{ task.title }}</h3>
+
+    @if (removeAssigneeSuccessMessage) {
+        <div class="pt-2">
+            <ngb-toast [delay]="toastDelay"
+                       [autohide]="autohide"
+                       (hidden)="showToast = false">
+                <b>{{removeAssigneeSuccessMessage}}</b>
+            </ngb-toast>
+        </div>
+    }
+    @if (errorMessage) {
+        <div class="pt-2">
+            <ngb-toast [delay]="toastDelay"
+                       [autohide]="false"
+                       (hidden)="showErrorToast = false">
+                <b>{{errorMessage}}</b>
+            </ngb-toast>
+        </div>
+    }
+
+    <div class="row pt-5">
+        <div class="col-md-9">
+            <div class="row">
+
+                @for (info of additionalInfo | keyvalue; track info) {
+                    <div class="col-xxl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                {{ getCardHeader(info.key) }}
+                            </div>
+                            <div class="card-body">
+                                @for (data of info.value | keyvalue; track data) {
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ data.key }}:
+                                        </div>
+                                        <div class="col">
+                                            {{ data.value }}
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+            <div class="row pt-5">
+                <div class="col-md-8">
+                    <app-task-form [data]="data"
+                                   [config]="configData"
+                                   (formValue)="deliverFormValue=$event"/>
+                </div>
+            </div>
+
+            <div class="row pt-5">
+                <div class="col-md-4">
+                    <button class="btn btn-sm btn-outline-success" (click)="complete()"
+                            [disabled]="deliverFormValue === undefined">Complete Task
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            {{ task.description }}
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Type</b></span> <br>
+                            {{ task.type }}
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Assignee:</b></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+
+                            <app-add-assignee [taskId]="task.taskId"
+                                              [assignee]="task.assignee"
+                                              (removeSuccess)="showRemoveSuccess($event)"
+                                              (formValue)="showNewAssignee($event)"/>
+                        </div>
+                    </div>
+                    <div class="row pt-4">
+                        <div class="col">
+                            <span class="text-secondary"><b>Created At:</b></span> <br>
+                            <small>{{ task.createdAt | date }}</small>
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Task Definition</b></span> <br>
+                            <small>{{ task.taskDefinition }}</small>
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Task ID</b></span> <br>
+                            <small>{{ task.taskId }}</small>
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Status</b></span> <br>
+                            <small>{{ task.status }}</small>
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <span class="text-secondary"><b>Service ID</b></span> <br>
+                            <small>{{ task.moduleId }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

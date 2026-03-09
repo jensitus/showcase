@@ -1,0 +1,32 @@
+<form #form="ngForm">
+  <div *ngFor="let key of getSortedObjectKeys(data)">
+    <div class="pt-2" *ngIf="isVisible(key) && getType(key) !== 'select' && getType(key) !== 'date' && getType(key) !== 'checkbox' && getType(key) !== 'textarea'">
+      <label>{{ getLabel(key) }}</label>
+      <input name="{{key}}" class="form-control"
+             [type]="getType(key)"
+             [required]="isRequired(key)"
+             [(ngModel)]="data[key]"
+             (ngModelChange)="onFormChange(form)">
+    </div>
+    <div class="pt-2" *ngIf="isVisible(key) && getType(key) === 'select'">
+      <label>{{ getLabel(key) }}</label>
+      <select name="{{key}}" class="form-control"
+              [required]="isRequired(key)"
+              [(ngModel)]="data[key]"
+              (ngModelChange)="onFormChange(form)">
+        <option *ngFor="let value of config[key].values" [value]="value">
+          {{ value }}
+        </option>
+      </select>
+    </div>
+    <div class="pt-2" *ngIf="isVisible(key) && getType(key) === 'textarea'">
+      <label>{{ getLabel(key) }}</label>
+      <textarea name="{{key}}" class="form-control"
+             [required]="isRequired(key)"
+             [(ngModel)]="data[key]"
+             (ngModelChange)="data[key] = showChecked($event); onFormChange(form)"></textarea>
+    </div>
+
+  </div>
+</form>
+

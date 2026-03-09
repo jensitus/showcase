@@ -1,0 +1,40 @@
+<nav class="sidebar bg-body-tertiary" [class]="{sidebarPushRight: isActive, collapsed: collapsed}">
+  <div class="list-group mt-5">
+
+    <a [routerLink]="['/new-task-list']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+       [attr.data-label]="'NAV.TASKS' | translate">
+      <i class="bi bi-card-checklist"></i>&nbsp;
+      <span>{{ 'NAV.TASKS' | translate }}</span>
+    </a>
+    <a [routerLink]="['/workflow-list']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+       [attr.data-label]="'NAV.WORKFLOWS' | translate">
+      <i class="bi bi-diagram-3"></i>&nbsp;
+      <span>{{ 'NAV.WORKFLOWS' | translate }}</span>
+    </a>
+
+    <a [routerLink]="['/customers']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+       [attr.data-label]="'NAV.CUSTOMERS' | translate">
+      <i class="bi bi-people"></i>&nbsp;
+      <span>{{ 'NAV.CUSTOMERS' | translate }}</span>
+    </a>
+      @if (!isLoggedIn()) {
+          <a [routerLink]="['/login']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+             [attr.data-label]="'NAV.LOGIN' | translate">
+              <i class="bi bi-person"></i>&nbsp;
+              <span>{{ 'NAV.LOGIN' | translate }}</span>
+          </a>
+      } @else {
+          <a [routerLink]="['/#']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+             [attr.data-label]="'NAV.LOGOUT' | translate"
+             (click)="logout()">
+              <i class="bi bi-box-arrow-right"></i>&nbsp;
+              <span>{{ 'NAV.LOGOUT' | translate }}</span>
+          </a>
+      }
+  </div>
+  <div class="toggle-button" [class.collapsed]="collapsed" (click)="toggleCollapsed()">
+    <i class="fa fa-fw fa-angle-double-{{collapsed?'right':'left'}}"></i>&nbsp;
+    <span>{{ 'NAV.COLLAPSE_SIDEBAR' | translate }}</span>
+  </div>
+
+</nav>

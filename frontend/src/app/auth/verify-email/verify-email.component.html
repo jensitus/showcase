@@ -1,0 +1,35 @@
+<div class="verify-container">
+    <div class="verify-card">
+        <!-- Verifying -->
+        @if (verifying) {
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                <h4>{{ 'AUTH.VERIFY.VERIFYING' | translate }}</h4>
+                <p class="text-muted">{{ 'AUTH.VERIFY.VERIFYING_WAIT' | translate }}</p>
+            </div>
+        }
+        <!-- Success -->
+        @if (!verifying && success) {
+            <div class="text-center">
+                <i class="bi bi-check-circle-fill text-success mb-3" style="font-size: 4rem;"></i>
+                <h4 class="mb-3">{{ 'AUTH.VERIFY.SUCCESS_TITLE' | translate }}</h4>
+                <p class="text-muted mb-4">{{ 'AUTH.VERIFY.SUCCESS_INFO' | translate }}</p>
+                <button class="btn btn-success w-100" (click)="navigateToCompleteProfile()">
+                    <i class="bi bi-person-fill-add me-2"></i>{{ 'AUTH.VERIFY.COMPLETE_PROFILE' | translate }}
+                </button>
+            </div>
+        }
+
+        <!-- Error -->
+        @if (!verifying && !success) {
+            <div class="text-center">
+                <i class="bi bi-x-circle-fill text-danger mb-3" style="font-size: 4rem;"></i>
+                <h4 class="mb-3">{{ 'AUTH.VERIFY.ERROR_TITLE' | translate }}</h4>
+                <div class="alert alert-danger">{{ errorMessage }}</div>
+                <button class="btn btn-primary w-100" (click)="navigateToLogin()">
+                    {{ 'AUTH.VERIFY.GO_TO_LOGIN' | translate }}
+                </button>
+            </div>
+        }
+    </div>
+</div>

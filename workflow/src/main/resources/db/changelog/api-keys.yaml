@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-api-keys-table
+      author: system
+      changes:
+        - createTable:
+            tableName: api_keys
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: api_keys_pkey
+              - column:
+                  name: key_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: api_keys_key_hash_key
+              - column:
+                  name: service_name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: api_keys_service_name_key
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_used_at
+                  type: TIMESTAMP
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+
+  - changeSet:
+      id: create-index-api-keys-service-name
+      author: system
+      changes:
+        - createIndex:
+            indexName: idx_api_keys_service_name
+            tableName: api_keys
+            columns:
+              - column:
+                  name: service_name

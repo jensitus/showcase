@@ -1,0 +1,66 @@
+
+
+<h4 class="pt-3">Requested contract</h4>
+
+@if (requestedContract === undefined) {
+    <p aria-hidden="true" class="placeholder-wave">
+        <span class="placeholder col-8 placeholder-lg"></span>
+    </p>
+    <p aria-hidden="true" class="placeholder-glow">
+        <span class="placeholder col-8 placeholder-lg"></span>
+    </p>
+} @else {
+    <div class="row pt-3">
+        <div class="col-md-7">
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Payment Schedule:
+                </div>
+                <div class="col-md-2">
+                    {{ requestedContract.paymentSchedule }}
+                </div>
+            </div>
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Number:
+                </div>
+                <div class="col-md-3">
+                    {{ requestedContract.insuranceNumber }}
+                </div>
+            </div>
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Amount:
+                </div>
+                <div class="col-md-2">
+                    {{ requestedContract.amount }}
+                </div>
+            </div>
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Name:
+                </div>
+                <div class="col-md-5">
+                    {{ requestedContract.name }}
+                </div>
+            </div>
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Insurance sum:
+                </div>
+                <div class="col">
+                    {{ requestedContract.insuranceSum }}
+                </div>
+            </div>
+            <div class="row pt-2">
+                <div class="col-md-3">
+                    Insurance coverage:
+                </div>
+                <div class="col">
+                    {{ requestedContract.insuranceCoverage }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

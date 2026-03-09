@@ -1,0 +1,17 @@
+# Example application.yaml for the client service (port 7001)
+# Copy the relevant sections to your service's configuration
+
+server:
+  port: 7001
+
+# Workflow API Configuration
+workflow-api:
+  base-url: http://localhost:8080
+  # For development: paste the key from workflow service logs
+  # For production: use environment variable
+  api-key: ${WORKFLOW_API_KEY:paste-your-dev-key-here}
+
+# Logging (optional - helps with debugging)
+logging:
+  level:
+    com.example.clientservice.client: DEBUG

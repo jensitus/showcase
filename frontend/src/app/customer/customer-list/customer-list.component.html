@@ -1,0 +1,40 @@
+<h3>{{ 'CUSTOMER.LIST_TITLE' | translate }}</h3>
+@defer {
+<div class="row pt-3">
+  <div class="col">
+
+      @if (!customers) {
+        {{ 'CUSTOMER.LOADING' | translate }}
+      }
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">{{ 'CUSTOMER.FIRST_NAME' | translate }}</th>
+          <th scope="col">{{ 'CUSTOMER.LAST_NAME' | translate }}</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (customer of customers; track customer) {
+            <tr>
+              <td><a [routerLink]="['/customers', customer.id]"><i class="bi bi-arrow-right-circle"></i></a></td>
+              <td>{{ customer.firstname }}</td>
+              <td>{{ customer.lastname }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+  </div>
+</div>
+    <div class="row pt3">
+        <div class="col">
+            <a [routerLink]="['/create-customer']"  class="btn btn-outline-success">
+                <i class="bi bi-person-plus"></i>&nbsp;
+                <span>{{ 'CUSTOMER.CREATE' | translate }}</span>
+            </a>
+        </div>
+    </div>
+} @placeholder {
+  {{ 'CUSTOMER.LOADING' | translate }}
+}

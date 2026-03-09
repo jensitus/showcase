@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <span class="text-danger text-lg-center">
+                <i class="bi bi-gear"></i>
+            </span> &nbsp;
+            <span>
+                service - b . org
+            </span>
+        </a>
+        <button class="navbar-toggler"
+                (click)="toggleSidebar()"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarTogglerDemo02"
+                aria-controls="navbarTogglerDemo02"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <!--span class="navbar-toggler-icon"></--span-->
+            <i class="bi bi-list text-warning"></i>
+        </button>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+            </ul>
+            @if (currentUser()) {
+                <div class="nav-item">
+                    <a [routerLink]="['/profile']" class="text-decoration-none text-dark d-inline-flex align-items-center">
+                        <app-avatar [avatarUrl]="currentUser()?.avatarUrl"
+                                    [username]="currentUser()?.username"
+                                    [email]="currentUser()?.email"
+                                    size="sm"
+                                    class="me-2">
+                        </app-avatar>
+                        {{ currentUser()?.username }}
+                    </a>
+                    &nbsp;
+                    <i class="bi bi-laptop"></i>
+                    &nbsp;
+                </div>
+            }
+            <div class="nav-item d-flex align-items-center gap-1 ms-2">
+                <button class="btn btn-sm"
+                        [class.btn-primary]="languageService.current() === 'en'"
+                        [class.btn-outline-secondary]="languageService.current() !== 'en'"
+                        (click)="languageService.setLanguage('en')">EN</button>
+                <button class="btn btn-sm"
+                        [class.btn-primary]="languageService.current() === 'de'"
+                        [class.btn-outline-secondary]="languageService.current() !== 'de'"
+                        (click)="languageService.setLanguage('de')">DE</button>
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,61 @@
+name: 'Build and deploy tasklist module'
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: { }
+env:
+  REGISTRY: "phactum.azurecr.io"
+  DOCKER_LOGIN_USER: "phactum"
+  PACKAGES_NAME: "insurance-showcase"
+  CONTAINER_NAME: "tasklist"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Check out git repository
+
+      - uses: actions/setup-java@v4
+        name: Set up JDK 17
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build module with maven
+        working-directory: tasklist
+        run: mvn -U -B package --file pom.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Login to docker
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.DOCKER_LOGIN_USER }}
+          password: ${{ secrets.DOCKER_LOGIN_PASSWORD }}
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: tasklist
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.PACKAGES_NAME }}/${{ env.CONTAINER_NAME }}:${{ github.run_number }}-${{ github.sha }}
+      - name: Login to k8s
+        uses: azure/k8s-set-context@v4
+        id: setcontext
+        with:
+          method: 'service-account'
+          k8s-url: https://116.202.98.185:6443
+          k8s-secret: ${{secrets.K8S_SECRET}}
+          cluster-name: "he-phactum"
+      - name: Deploy application
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: 'insurance-showcase'
+          action: 'deploy'
+          manifests: 'k8s/tasklist'
+          images: |
+            ${{ env.REGISTRY }}/${{ env.PACKAGES_NAME }}/${{ env.CONTAINER_NAME }}:${{ github.run_number }}-${{ github.sha }}

@@ -1,0 +1,77 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: insurance
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/db.changelog-master.yaml
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        connection:
+          provider_disables_autocommit: true
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5555/workflow
+    password: insurance
+    username: insurance
+    hikari:
+      auto-commit: false
+
+jwt:
+  secret: your-secret-key-must-be-at-least-256-bits-long-for-HS256-algorithm-please-change-this-in-production
+  expiration: 86400000  # 24 hours in milliseconds
+
+app:
+  base-url: http://localhost:8080
+  frontend-url: http://localhost:4200
+
+#camunda:
+#  client:
+#    mode: oidc
+#    auth:
+#      oidc-type: keycloak
+#      issuer: http://localhost:18080/auth/realms/camunda-platform
+#      client-id: zeebe
+#      client-secret: zecret
+#    zeebe:
+#      enabled: true
+#      base-url: http://localhost:26500
+#      defaults:
+#        enabled: false
+#    operate:
+#      enabled: true
+#      base-url: http://localhost:8081
+#    tasklist:
+#      enabled: false
+#    optimize:
+#      enabled: false
+#    identity:
+#      enabled: false
+
+#vanillabp:
+#  workflow-modules:
+#    insurance:
+#      adapters:
+#        camunda8:
+#          resources-location: classpath*:/processes8
+
+logging:
+  level:
+    # io.camunda.zeebe.client.impl.ZeebeCallCredentials: ERROR
+    org.springframework.security: TRACE
+    org.springframework.web.filter: DEBUG
+    org.service_b.workflow.security.jwt: DEBUG
+
+workerId: test
+
+tasklist:
+  base-url: http://localhost:7001/engine-rest
+
+cibseven:
+  base-url: http://localhost:7001/engine-rest
+
+workflow-service:
+  base-url: http://localhost:8080

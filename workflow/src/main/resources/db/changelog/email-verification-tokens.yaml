@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-email-verification-tokens-table
+      author: system
+      changes:
+        - createTable:
+            tableName: email_verification_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: email_verification_tokens_pkey
+              - column:
+                  name: token
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: email_verification_tokens_token_key
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_email_verification_tokens_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verified_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: create-index-email-verification-tokens-user-id
+      author: system
+      changes:
+        - createIndex:
+            indexName: idx_email_verification_tokens_user_id
+            tableName: email_verification_tokens
+            columns:
+              - column:
+                  name: user_id

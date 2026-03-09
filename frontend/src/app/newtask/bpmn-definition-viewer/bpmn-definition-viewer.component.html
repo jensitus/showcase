@@ -1,0 +1,43 @@
+
+<div class="bpmn-definition-viewer-container">
+    <!-- Stats Header -->
+    <div class="stats-header">
+        <div class="stat-item">
+            <span class="stat-label">Total Instances:</span>
+            <span class="stat-value">{{ totalInstances }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Active Instances:</span>
+            <span class="stat-value active">{{ activeInstances }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Process Definition:</span>
+            <span class="stat-value">{{ processDefinitionKey }}</span>
+        </div>
+        @if (version !== undefined) {
+            <div class="stat-item">
+                <span class="stat-label">Version:</span>
+                <span class="stat-value">{{ version }}</span>
+            </div>
+        }
+        <div class="stat-item">
+            <span class="stat-label">Tenant:</span>
+            <span class="stat-value">{{ tenantId }}</span>
+        </div>
+    </div>
+
+    @if (loading) {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading process definition and instances...</p>
+        </div>
+    }
+
+    @if (error) {
+        <div class="error-state">
+            <p>{{ error }}</p>
+        </div>
+    }
+
+    <div #canvas class="bpmn-canvas"></div>
+</div>

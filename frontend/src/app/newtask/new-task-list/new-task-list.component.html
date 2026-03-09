@@ -1,0 +1,185 @@
+<!-- task-list.component.html -->
+<div class="task-list-container">
+    <div class="header">
+        <h2>{{ 'TASKS.TITLE' | translate }}</h2>
+
+        <!-- Task Filter Mode -->
+        <div class="filter-mode-section">
+            <div class="filter-buttons">
+                <button
+                    [class.active]="filterMode() === 'my-tasks'"
+                    (click)="onFilterModeChange('my-tasks')"
+                    [disabled]="loading()">
+                    {{ 'TASKS.MY_TASKS' | translate }}
+                </button>
+                <button
+                    [class.active]="filterMode() === 'available'"
+                    (click)="onFilterModeChange('available')"
+                    [disabled]="loading()">
+                    {{ 'TASKS.AVAILABLE' | translate }}
+                </button>
+                <button
+                    [class.active]="filterMode() === 'all'"
+                    (click)="onFilterModeChange('all')"
+                    [disabled]="loading()">
+                    {{ 'TASKS.ALL' | translate }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Tenant ID Filter -->
+        <div class="filter-section">
+            <label for="tenantId">{{ 'TASKS.TENANT_ID' | translate }}</label>
+            <input
+                    id="tenantId"
+                    type="text"
+                    [value]="tenantId()"
+                    (input)="onTenantIdChange($any($event.target).value)"
+                    placeholder="Enter tenant ID">
+            <button (click)="loadTasks()" [disabled]="loading()">
+                {{ loading() ? ('TASKS.LOADING' | translate) : ('TASKS.SEARCH' | translate) }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    @if (error()) {
+        <div class="error-message">
+            {{ error() }}
+        </div>
+    }
+
+    <!-- Loading Indicator -->
+    @if (loading()) {
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>{{ 'TASKS.LOADING_TASKS' | translate }}</p>
+        </div>
+    }
+
+    <!-- Task Table -->
+    @if (!loading() && tasks().length > 0) {
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th (click)="onSort('name')" class="sortable">
+                        {{ 'TASKS.NAME' | translate }} {{ getSortIcon('name') }}
+                    </th>
+                    <th (click)="onSort('taskId')" class="sortable">
+                        {{ 'TASKS.TASK_ID' | translate }} {{ getSortIcon('taskId') }}
+                    </th>
+                    <th (click)="onSort('assignee')" class="sortable">
+                        {{ 'TASKS.ASSIGNEE' | translate }} {{ getSortIcon('assignee') }}
+                    </th>
+                    <th (click)="onSort('taskState')" class="sortable">
+                        {{ 'TASKS.STATE' | translate }} {{ getSortIcon('taskState') }}
+                    </th>
+                    <th (click)="onSort('created')" class="sortable">
+                        {{ 'TASKS.CREATED' | translate }} {{ getSortIcon('created') }}
+                    </th>
+                    <th>{{ 'TASKS.ACTIONS' | translate }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @for (task of tasks(); track task.id) {
+                        <tr>
+                            <td>{{ task.name }}</td>
+                            <td>{{ task.taskId }}</td>
+                            <td>{{ task.assignee || ('TASKS.UNASSIGNED' | translate) }}</td>
+                            <td>
+                <span [class]="'status-badge status-' + task.taskState?.toLowerCase()">
+                  {{ task.taskState }}
+                </span>
+                            </td>
+                            <td>{{ task.created | date:'short' }}</td>
+                            <td class="actions">
+                                <button class="btn-view" (click)="viewTask(task.taskId)" title="View">👁️</button>
+                                <button class="btn-edit" (click)="editTask(task.id)" title="Edit">✏️</button>
+                                <button class="btn-delete" (click)="deleteTask(task, $event)" title="Delete">🗑️</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                {{ 'TASKS.SHOWING' | translate:{ from: startIndex(), to: endIndex(), total: totalElements() } }}
+            </div>
+
+            <div class="pagination-controls">
+                <!-- Page Size Selector -->
+                <div class="page-size-selector">
+                    <label for="pageSize">{{ 'TASKS.ITEMS_PER_PAGE' | translate }}</label>
+                    <select
+                            id="pageSize"
+                            [value]="pageSize()"
+                            (change)="onPageSizeChange(+$any($event.target).value)">
+                        <option [value]="5">5</option>
+                        <option [value]="10">10</option>
+                        <option [value]="20">20</option>
+                        <option [value]="100">100</option>
+                    </select>
+                </div>
+
+                <!-- Page Navigation -->
+                <div class="page-navigation">
+                    <button
+                            (click)="previousPage()"
+                            [disabled]="!hasPreviousPage() || loading()"
+                            class="nav-button">
+                        {{ 'TASKS.PREVIOUS' | translate }}
+                    </button>
+
+                    <span class="page-indicator">
+                        {{ 'TASKS.PAGE_OF' | translate:{ current: currentPage() + 1, total: totalPages() } }}
+                    </span>
+
+                    <button
+                            (click)="nextPage()"
+                            [disabled]="!hasNextPage() || loading()"
+                            class="nav-button">
+                        {{ 'TASKS.NEXT' | translate }}
+                    </button>
+                </div>
+
+                <!-- Direct Page Navigation -->
+                <div class="page-numbers">
+                    @for (pageNum of [].constructor(totalPages()); track $index) {
+                        @if ($index < 5 || $index === currentPage() || $index === totalPages() - 1) {
+                            <button
+                                    (click)="onPageChange($index)"
+                                    [class.active]="currentPage() === $index"
+                                    [disabled]="loading()"
+                                    class="page-number">
+                                {{ $index + 1 }}
+                            </button>
+                        } @else if ($index === 5) {
+                            <span class="ellipsis">...</span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading() && tasks().length === 0 && !error()) {
+        <div class="empty-state">
+            @switch (filterMode()) {
+                @case ('my-tasks') {
+                    <p>{{ 'TASKS.NO_MY_TASKS' | translate }}</p>
+                }
+                @case ('available') {
+                    <p>{{ 'TASKS.NO_AVAILABLE' | translate }}</p>
+                }
+                @case ('all') {
+                    <p>{{ 'TASKS.NO_ALL' | translate:{ tenant: tenantId() } }}</p>
+                }
+            }
+        </div>
+    }
+</div>

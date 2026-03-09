@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: engine
+  namespace: insurance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: engine
+  template:
+    metadata:
+      labels:
+        app: engine
+    spec:
+      containers:
+        - name: engine
+          image: ghcr.io/GITHUB_USER/insurance-engine:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 7001
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/cib
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: postgres-user
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: postgres-password
+            - name: WORKFLOW_API_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: workflow-api-key
+          readinessProbe:
+            tcpSocket:
+              port: 7001
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: engine
+  namespace: insurance
+spec:
+  selector:
+    app: engine
+  ports:
+    - port: 7001
+      targetPort: 7001

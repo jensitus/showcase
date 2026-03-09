@@ -1,0 +1,538 @@
+openapi: 3.0.3
+info:
+  title: User Authentication API
+  description: |
+    API for user authentication and account management.
+
+    ## Authentication
+    Most endpoints require JWT Bearer token authentication.
+    Obtain a token via the `/api/auth/login` endpoint.
+
+    ## Public Endpoints
+    The following endpoints do not require authentication:
+    - POST /api/auth/login
+    - POST /api/auth/register
+    - GET /api/auth/verify-email
+    - POST /api/auth/resend-verification
+    - POST /api/auth/forgot-password
+    - POST /api/auth/reset-password
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Login and token management
+  - name: Registration
+    description: User registration and email verification
+  - name: Password Management
+    description: Password change and reset operations
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user and obtain JWT token
+      description: |
+        Authenticates a user with username and password credentials.
+        Returns a JWT token on successful authentication.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: "johndoe"
+              password: "securePassword123"
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                type: "Bearer"
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                username: "johndoe"
+                email: "john@example.com"
+                role: "USER"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Invalid username or password"
+        '403':
+          description: Account disabled (email not verified)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Account is disabled. Please verify your email."
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/register:
+    post:
+      tags:
+        - Registration
+      summary: Register a new user account
+      description: |
+        Creates a new user account. The account is initially disabled until
+        the user verifies their email address. A verification email is sent
+        automatically upon successful registration.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+            example:
+              username: "johndoe"
+              email: "john@example.com"
+              password: "securePassword123"
+              firstName: "John"
+              lastName: "Doe"
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request (validation error or duplicate username/email)
+
+  /api/auth/verify-email:
+    get:
+      tags:
+        - Registration
+      summary: Verify email address
+      description: |
+        Verifies the user's email address using the token sent via email.
+        Once verified, the user account is enabled and the user can log in.
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Email verification token received via email
+          schema:
+            type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "Email verified successfully. You can now log in."
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid:
+                  value:
+                    error: "Invalid verification token"
+                expired:
+                  value:
+                    error: "Verification token has expired"
+                already_verified:
+                  value:
+                    error: "Email already verified"
+
+  /api/auth/resend-verification:
+    post:
+      tags:
+        - Registration
+      summary: Resend email verification
+      description: |
+        Resends the email verification link to the specified email address.
+        Any existing verification tokens for the user are invalidated.
+      operationId: resendVerification
+      parameters:
+        - name: email
+          in: query
+          required: true
+          description: Email address to resend verification to
+          schema:
+            type: string
+            format: email
+          example: "john@example.com"
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "Verification email sent successfully"
+        '400':
+          description: Error sending verification email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_found:
+                  value:
+                    error: "User not found"
+                already_verified:
+                  value:
+                    error: "Email already verified"
+
+  /api/auth/change-password:
+    post:
+      tags:
+        - Password Management
+      summary: Change password for authenticated user
+      description: |
+        Allows an authenticated user to change their password.
+        Requires the current password for verification.
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            example:
+              currentPassword: "oldPassword123"
+              newPassword: "newSecurePassword456"
+              confirmPassword: "newSecurePassword456"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "Password changed successfully"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                mismatch:
+                  value:
+                    error: "New password and confirmation do not match"
+                incorrect:
+                  value:
+                    error: "Current password is incorrect"
+                not_found:
+                  value:
+                    error: "User not found"
+        '401':
+          description: Not authenticated
+        '403':
+          description: Access denied
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Password Management
+      summary: Request password reset
+      description: |
+        Initiates the password reset process. If an account with the provided
+        email exists, a password reset link is sent to that email address.
+
+        **Security Note:** This endpoint always returns a success response to
+        prevent email enumeration attacks.
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+            example:
+              email: "john@example.com"
+      responses:
+        '200':
+          description: Request processed (regardless of whether email exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "If an account with that email exists, a password reset link has been sent."
+
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Password Management
+      summary: Reset password using token
+      description: |
+        Resets the user's password using a valid reset token.
+        The token is obtained via the forgot-password flow and is valid for 1 hour.
+        Each token can only be used once.
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+            example:
+              token: "550e8400-e29b-41d4-a716-446655440000"
+              newPassword: "newSecurePassword456"
+              confirmPassword: "newSecurePassword456"
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "Password has been reset successfully. You can now log in with your new password."
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                mismatch:
+                  value:
+                    error: "New password and confirmation do not match"
+                invalid_token:
+                  value:
+                    error: "Invalid or expired reset token"
+                expired_token:
+                  value:
+                    error: "Reset token has expired"
+                used_token:
+                  value:
+                    error: "Reset token has already been used"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from the login endpoint
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: "securePassword123"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        type:
+          type: string
+          description: Token type
+          default: "Bearer"
+          example: "Bearer"
+        id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john@example.com"
+        role:
+          type: string
+          description: User's role
+          example: "USER"
+
+    UserRegistrationRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Unique username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          maxLength: 100
+          description: User's email address
+          example: "john@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's password (minimum 8 characters)
+          example: "securePassword123"
+        firstName:
+          type: string
+          description: User's first name (optional)
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name (optional)
+          example: "Doe"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john@example.com"
+        enabled:
+          type: boolean
+          description: Whether the user account is enabled
+          example: false
+        role:
+          type: string
+          description: User's role
+          example: "USER"
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-15T10:30:00"
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+        - confirmPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: User's current password
+          example: "oldPassword123"
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          description: New password (minimum 8 characters)
+          example: "newSecurePassword456"
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the new password
+          example: "newSecurePassword456"
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address associated with the account
+          example: "john@example.com"
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+        - confirmPassword
+      properties:
+        token:
+          type: string
+          description: Password reset token received via email
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          description: New password (minimum 8 characters)
+          example: "newSecurePassword456"
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the new password
+          example: "newSecurePassword456"
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred"

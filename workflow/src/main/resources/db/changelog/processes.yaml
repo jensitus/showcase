@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-processes-table
+      author: jensitus
+      changes:
+        - createTable:
+            tableName: PROCESSES
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: process_instance_id
+                  type: VARCHAR(255)
+              - column:
+                  name: process_definition_id
+                  type: VARCHAR(255)
+              - column:
+                  name: tenant_id
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: create-variables-table
+      author: jensitus
+      changes:
+        - createTable:
+            tableName: VARIABLES
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: process_id
+                  type: uuid
+              - column:
+                  name: process_instance_id
+                  type: VARCHAR(255)
+              - column:
+                  name: variable_name
+                  type: VARCHAR(255)
+              - column:
+                  name: variable_value
+                  type: VARCHAR(255)
+              - column:
+                  name: variable_type
+                  type: VARCHAR(50)
+          addUniqueConstraint:
+            tableName: VARIABLES
+            columnNames: process_id, id, variable_name
+            constraintName: unique_process_variable_type
+          addForeignKeyConstraint:
+            baseColumnNames: process_id
+            baseTableName: VARIABLES
+            constraintName: fk_process_id
+            referencedColumnNames: id
+            referencedTableName: PROCESSES
+
+  - changeSet:
+      id: add_processable_id_and_type_to_processes
+      author: jensitus
+      changes:
+        - addColumn:
+            tableName: PROCESSES
+            columns:
+              - column:
+                  name: responsible_for_type
+                  type: VARCHAR(255)
+              - column:
+                  name: responsible_for_id
+                  type: UUID
+
+

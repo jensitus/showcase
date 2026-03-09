@@ -1,0 +1,216 @@
+<!-- task-detail.component.html -->
+<div class="task-detail-container">
+    <!-- Header with Navigation -->
+    <div class="header">
+        <button class="back-button" (click)="goBack()">
+            ← {{ returnTo() === 'profile' ? ('TASKS.BACK_TO_PROFILE' | translate) : ('TASKS.BACK_TO_LIST' | translate) }}
+        </button>
+        @if (task()) {
+            <h2>{{ task().name }}</h2>
+        } @else {
+            <h2>{{ 'TASKS.DETAIL_TITLE' | translate }}</h2>
+        }
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>{{ 'TASKS.LOADING_DETAIL' | translate }}</p>
+        </div>
+    }
+
+    <!-- Error Message -->
+    @if (error()) {
+        <div class="error-message">
+            {{ error() }}
+        </div>
+    }
+
+    <!-- Success Message -->
+    @if (successMessage()) {
+        <div class="success-message">
+            {{ successMessage() }}
+        </div>
+    }
+
+    <!-- Task Details -->
+    @if (!loading() && task()) {
+        <div class="task-card">
+
+            <div class="form-grid">
+                @if (task()?.additionalInfo) {
+
+                    @for (info of additionalInfo | keyvalue; track info) {
+                        <div class="form-column">
+                            <div class="info-section">
+                                <h3>
+                                    {{ getCardHeader(info.key) }}
+                                </h3>
+
+                                @for (data of info.value | keyvalue; track data) {
+                                    <div class="info-item">
+                                        <label>{{ data.key }}:</label>
+                                        <div class="info-value">{{ data.value }}</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                @if (!editMode()) {
+                    <button class="btn-edit" (click)="toggleEditMode()">
+                        {{ 'TASKS.EDIT' | translate }}
+                    </button>
+                    <button class="btn-delete" (click)="onDelete()" [disabled]="saving()">
+                        {{ 'TASKS.DELETE' | translate }}
+                    </button>
+                } @else {
+                    <button class="btn-save" (click)="onSubmit()" [disabled]="saving() || taskForm.invalid">
+                        {{ saving() ? ('TASKS.SAVING' | translate) : ('TASKS.SAVE' | translate) }}
+                    </button>
+                    <button class="btn-cancel" (click)="toggleEditMode()" [disabled]="saving()">
+                        {{ 'TASKS.CANCEL' | translate }}
+                    </button>
+                }
+            </div>
+
+            <!-- Form -->
+            <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+                <div class="form-grid">
+                    <!-- Left Column -->
+                    <div class="form-column">
+                        <!-- Task Name -->
+                        <div class="form-group">
+                            <label for="name">{{ 'TASKS.TASK_NAME' | translate }}</label>
+                            @if (editMode()) {
+                                <input
+                                        id="name"
+                                        type="text"
+                                        formControlName="name"
+                                        class="form-control"
+                                        [class.invalid]="taskForm.get('name')?.invalid && taskForm.get('name')?.touched">
+                                @if (taskForm.get('name')?.invalid && taskForm.get('name')?.touched) {
+                                    <span class="error-text">{{ 'TASKS.TASK_NAME_REQUIRED' | translate }}</span>
+                                }
+                            } @else {
+                                <div class="readonly-field">{{ task()?.name }}</div>
+                            }
+                        </div>
+
+                        <!-- Assignee -->
+                        <div class="form-group">
+                            <label for="assignee">{{ 'TASKS.TASK_ASSIGNEE' | translate }}</label>
+                            @if (editMode()) {
+                                <input
+                                        id="assignee"
+                                        type="text"
+                                        formControlName="assignee"
+                                        class="form-control"
+                                        [placeholder]="'TASKS.UNASSIGNED' | translate">
+                            } @else {
+                                <div class="readonly-field">{{ task()?.assignee || ('TASKS.UNASSIGNED' | translate) }}</div>
+                            }
+                        </div>
+
+                        <!-- Task State -->
+                        <div class="form-group">
+                            <label for="taskState">{{ 'TASKS.TASK_STATE' | translate }}</label>
+                            @if (editMode()) {
+                                <select
+                                        id="taskState"
+                                        formControlName="taskState"
+                                        class="form-control"
+                                        [class.invalid]="taskForm.get('taskState')?.invalid && taskForm.get('taskState')?.touched">
+                                    <option value="">{{ 'TASKS.SELECT_STATE' | translate }}</option>
+                                    <option value="PENDING">{{ 'TASKS.PENDING' | translate }}</option>
+                                    <option value="IN_PROGRESS">{{ 'TASKS.IN_PROGRESS' | translate }}</option>
+                                    <option value="COMPLETED">{{ 'TASKS.COMPLETED' | translate }}</option>
+                                    <option value="ACTIVE">{{ 'TASKS.ACTIVE' | translate }}</option>
+                                    <option value="CANCELLED">{{ 'TASKS.CANCELLED' | translate }}</option>
+                                </select>
+                                @if (taskForm.get('taskState')?.invalid && taskForm.get('taskState')?.touched) {
+                                    <span class="error-text">{{ 'TASKS.TASK_STATE_REQUIRED' | translate }}</span>
+                                }
+                            } @else {
+                                <div class="readonly-field">
+                                    <span [class]="'status-badge status-' + task()?.taskState?.toLowerCase()">
+                                        {{ task()?.taskState }}
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <app-task-form [data]="data"
+                                       [config]="configData"
+                                       (formValue)="deliverFormValue=$event"/>
+
+                    </div>
+
+
+                    <!-- Right Column - Read-only fields -->
+                    <div class="form-column">
+                        <div class="info-section">
+                            <h3>{{ 'TASKS.SYSTEM_INFO' | translate }}</h3>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.TASK_ID_LABEL' | translate }}</label>
+                                <div class="info-value">{{ task()?.taskId }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.INTERNAL_ID' | translate }}</label>
+                                <div class="info-value code">{{ task()?.id }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.TENANT_ID_LABEL' | translate }}</label>
+                                <div class="info-value">{{ task()?.tenantId }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.CREATED_LABEL' | translate }}</label>
+                                <div class="info-value">{{ task()?.created | date:'medium' }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.PROCESS_INSTANCE_ID' | translate }}</label>
+                                <div class="info-value code">{{ task()?.processInstanceId || 'N/A' }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.PROCESS_DEFINITION_ID' | translate }}</label>
+                                <div class="info-value code">{{ task()?.processDefinitionId || 'N/A' }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.EXECUTION_ID' | translate }}</label>
+                                <div class="info-value code">{{ task()?.executionId || 'N/A' }}</div>
+                            </div>
+
+                            <div class="info-item">
+                                <label>{{ 'TASKS.TASK_DEF_KEY' | translate }}</label>
+                                <div class="info-value">{{ task()?.taskDefinitionKey || 'N/A' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="action-bar">
+                <button class="btn-save" (click)="completeTask()"
+                        [disabled]="saving() || taskForm.invalid || task()?.taskState === 'COMPLETED'">
+                    &#9998;&#65039; {{ 'TASKS.COMPLETE' | translate }}
+                </button>
+                <button class="btn-edit-emo"> &#9973; {{ 'TASKS.EDIT' | translate }}</button>
+            </div>
+
+        </div>
+    }
+</div>
+

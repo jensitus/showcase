@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_18k167m" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.23.0">
+  <bpmn:process id="cib_demo" name="CIB Demo" isExecutable="true" camunda:versionTag="1" camunda:historyTimeToLive="1234">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_15kwra8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_195j967">
+      <bpmn:incoming>Flow_0rgdxka</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0rgdxka" sourceRef="ut_user_task" targetRef="Event_195j967" />
+    <bpmn:sequenceFlow id="Flow_15kwra8" sourceRef="StartEvent_1" targetRef="ut_user_task" />
+    <bpmn:userTask id="ut_user_task" name="User Task">
+      <bpmn:incoming>Flow_15kwra8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rgdxka</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="cib_demo">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_195j967_di" bpmnElement="Event_195j967">
+        <dc:Bounds x="492" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1814gnd_di" bpmnElement="ut_user_task">
+        <dc:Bounds x="310" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0rgdxka_di" bpmnElement="Flow_0rgdxka">
+        <di:waypoint x="410" y="120" />
+        <di:waypoint x="492" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15kwra8_di" bpmnElement="Flow_15kwra8">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="310" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

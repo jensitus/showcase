@@ -1,0 +1,90 @@
+<div class="row pt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                {{ 'INSURANCE.CUSTOMER_CARD' | translate }}
+            </div>
+            <div class="card-body">
+                @if (!customer) {
+                    <div aria-hidden="true" class="placeholder-wave">
+                        <span class="placeholder col-3 placeholder-sm"></span>
+                    </div>
+                    <div aria-hidden="true" class="placeholder-wave">
+                        <span class="placeholder col-6 placeholder-sm"></span>
+                    </div>
+                    <div aria-hidden="true" class="placeholder-wave">
+                        <span class="placeholder col-8 placeholder-sm"></span>
+                    </div>
+                    <div aria-hidden="true" class="placeholder-wave">
+                        <span class="placeholder col-12 placeholder-sm"></span>
+                    </div>
+                } @else {
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_NAME' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.firstname + ' ' + customer.lastname }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_EMAIL' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.email }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_PHONE' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.phoneNumber }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_GENDER' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.gender }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_DOB' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.dateOfBirth }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_STREET' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.street }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_CITY' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.zipCode + ' ' + customer.city }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{ 'INSURANCE.CARD_COUNTRY' | translate }}
+                        </div>
+                        <div class="col">
+                            {{ customer.country }}
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

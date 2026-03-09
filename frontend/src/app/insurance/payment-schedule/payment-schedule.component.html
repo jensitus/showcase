@@ -1,0 +1,85 @@
+<div class="row pt-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                {{ 'INSURANCE.TARIFF' | translate }}
+            </div>
+            <div class="card-body">
+                <div class="row pt-2">
+                    <div class="col-md-4">
+                        {{ 'INSURANCE.INSURANCE_SUM' | translate }}
+                    </div>
+                    <div class="col-md-2"></div>
+                    <div class="col-md-6">
+                        {{ insuranceSum }} <br>
+                        <input type="range" [(ngModel)]="insuranceSumSteps" (ngModelChange)="volumeChange($event)"
+                               class="form-range" min="1" max="3" step="1" id="insuranceSum">
+                    </div>
+                </div>
+
+                <div class="row pt-2">
+                    <div class="col-md-4">
+                        {{ 'INSURANCE.INSURANCE_COVERAGE' | translate }}
+                    </div>
+                    <div class="col-md-6">
+                        @for (cover of coverings; track cover) {
+                            <div class="row">
+                                <div class="col">
+                                    {{ coverageTranslationKey(cover) | translate }}
+                                </div>
+                                <div class="col">
+                                    <input type="radio" [value]="cover" name="coverings" [(ngModel)]="coverage"
+                                           (change)="choseCoverage(cover)">
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                {{ 'INSURANCE.CONTRACTUAL' | translate }}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+
+                    </div>
+                    <div class="col">
+                        {{ coverageTranslationKey(coverage) | translate }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        {{ 'INSURANCE.PAYMENT_METHOD' | translate }}
+                    </div>
+                </div>
+                <div class="row pt-2">
+                    <div class="col">
+                        @for (schedule of mapScheduleOfPayments | keyvalue; track schedule) {
+                            <div class="row">
+                                <div class="col-1">
+                                    <input type="radio"
+                                           [value]="schedule"
+                                           name="paymentSchedule"
+                                           [(ngModel)]="paymentSchedule"
+                                           (ngModelChange)="emitPaymentSchedule(paymentSchedule)">
+                                </div>
+                                <div class="col-6">
+                                    {{ scheduleTranslationKey(schedule.key) | translate }}
+                                </div>
+                                <div class="col-4">
+                                    {{ '€ ' + schedule.value + '.-' }}
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

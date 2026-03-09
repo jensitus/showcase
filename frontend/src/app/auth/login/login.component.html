@@ -1,0 +1,37 @@
+<div class="container">
+    <h3>{{ 'AUTH.LOGIN.TITLE' | translate }}</h3>
+    @if (showErrorToast()) {
+        <ngb-toast [autohide]="false" (hidden)="showErrorToast.set(false)">
+            <b>{{ errorMessage() }}</b>
+        </ngb-toast>
+    }
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="row mt-2">
+                <div class="col">
+                    <label>{{ 'AUTH.LOGIN.USERNAME' | translate }}</label>
+                    <input type="text" class="form-control" [(ngModel)]="username">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col">
+                    <label>{{ 'AUTH.LOGIN.PASSWORD' | translate }}</label>
+                    <input type="password" class="form-control" [(ngModel)]="password">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-1">
+            <button class="btn btn-sm btn-outline-success mt-2" (click)="login()">{{ 'AUTH.LOGIN.SUBMIT' | translate }}</button>
+            </div>
+        <div class="col-1 mt-3">
+            <a [routerLink]="['/register']" style="text-decoration: none;">{{ 'AUTH.LOGIN.REGISTER' | translate }}</a>
+        </div>
+        <div class="col-2 mt-3">
+            <a [routerLink]="['/forgot-password']" style="text-decoration: none;">{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a>
+        </div>
+    </div>
+</div>

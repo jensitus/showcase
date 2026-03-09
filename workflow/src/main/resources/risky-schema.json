@@ -1,0 +1,18 @@
+
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Risky",
+  "description": "Return risk assessment values",
+  "type": "object",
+  "properties": {
+    "riskDescription": {
+      "description": "Describes the reason for approval or rejection of proposal",
+      "type": "string"
+    },
+    "approveProposal": {
+      "description": "decision if proposal is approved or rejected",
+      "type": "string"
+    }
+  },
+  "required": ["riskDescription", "approveProposal"]
+}

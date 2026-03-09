@@ -1,0 +1,40 @@
+services:
+
+  postgres:
+    image: postgres:15.10-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=cib
+      - POSTGRES_PASSWORD=cib
+      - POSTGRES_USER=cib
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+#  greenmail:
+#    image: greenmail/standalone:1.6.5
+#    environment:
+#      - JAVA_OPTS=-Dgreenmail.verbose
+#    ports:
+#      - "3025:3025" # SMTP
+#      - "3110:3110" # POP3
+#      - "3143:3143" # IMAP
+#      - "3465:3465" # SMTPS
+#      - "3993:3993" # IMAPS
+#      - "3995:3995" # POP3S
+#      - "8085:8080" # Greenmail API
+#
+#  roundcube:
+#    image: roundcube/roundcubemail:latest
+#    depends_on:
+#      - greenmail
+#    ports:
+#      - "8086:80"
+#    environment:
+#      - ROUNDCUBEMAIL_DEFAULT_HOST=greenmail  # IMAP server - tls:// prefix for STARTTLS, ssl:// for SSL/TLS
+#      - ROUNDCUBEMAIL_DEFAULT_PORT=3143       # IMAP port
+#      - ROUNDCUBEMAIL_SMTP_SERVER=greenmail   # SMTP server - tls:// prefix for STARTTLS, ssl:// for SSL/TLS
+#      - ROUNDCUBEMAIL_SMTP_PORT=3025          # SMTP port
+
+volumes:
+  pg-data:

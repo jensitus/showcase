@@ -1,0 +1,71 @@
+.bpmn-section {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    h5 {
+        margin-bottom: 0.75rem;
+        color: #333;
+    }
+
+    .bpmn-legend {
+        display: flex;
+        gap: 1.25rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #555;
+
+            .legend-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: bold;
+                color: white;
+                min-width: 28px;
+                text-align: center;
+            }
+
+            .badge-active { background-color: #28a745; }
+            .badge-completed { background-color: #6c757d; }
+            .badge-incident { background-color: #dc3545; }
+        }
+    }
+
+    app-bpmn-viewer {
+        display: block;
+        height: 500px;
+    }
+}
+
+.insurance-type-card {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+
+    &:hover:not(.disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.avatar-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

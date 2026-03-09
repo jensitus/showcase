@@ -1,0 +1,49 @@
+<h2 class="mb-3">{{ 'WORKFLOW.TITLE' | translate }}</h2>
+<div class="row">
+    <div class="col">
+        <b>{{ 'WORKFLOW.PROCESS_NAME' | translate }}</b>
+    </div>
+    <div class="col-md">
+        <b>{{ 'WORKFLOW.VERSION' | translate }}</b>
+    </div>
+    <div class="col-md">
+        <b>{{ 'WORKFLOW.RUNNING' | translate }}</b>
+    </div>
+    <div class="col">
+        <b>{{ 'WORKFLOW.LINK' | translate }}</b>
+    </div>
+</div>
+
+@if (definitions && definitions.length === 0) {
+    <p class="placeholder-glow">
+        <span class="placeholder col-7"></span>
+        <span class="placeholder col-4"></span>
+        <span class="placeholder col-6"></span>
+        <span class="placeholder col-7"></span>
+        <span class="placeholder col-7"></span>
+        <span class="placeholder col-2"></span>
+        <span class="placeholder col-4"></span>
+        <span class="placeholder col-7"></span>
+    </p>
+} @else {
+    @for (definition of definitions; track definition) {
+        @if (definition.runningInstances > 0) {
+            <div class="row pt-3">
+                <div class="col">
+                    {{ definition.name }}
+                </div>
+                <div class="col-md">
+                    {{ definition.version }}
+                </div>
+                <div class="col-md">
+                    {{ definition.runningInstances }}
+                </div>
+                <div class="col">
+                    <a [routerLink]="['/workflow', definition.key, definition.version]">
+                        <i class="bi bi-arrow-left-circle"></i>
+                    </a>
+                </div>
+            </div>
+        }
+    }
+}

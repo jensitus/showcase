@@ -1,0 +1,7 @@
+<app-header></app-header>
+@if (showSidebar()) {
+    <app-sidebar (collapsedEvent)="receiveCollapsed($event)"></app-sidebar>
+}
+<section [class.main-container]="showSidebar()" [class.collapsed]="collapedSideBar">
+  <router-outlet></router-outlet>
+</section>

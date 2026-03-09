@@ -1,0 +1,23 @@
+databaseChangeLog:
+  #  - include:
+  #      file: classpath:/io/vanillabp/camunda8/liquibase/main.yaml
+  - include:
+      file: /db/changelog/insurance-demo.yaml
+  - include:
+      file: /db/changelog/customer.yaml
+  - include:
+      file: /db/changelog/customer-insurance-relation.yaml
+  - include:
+      file: /db/changelog/tasks.yaml
+  - include:
+      file: /db/changelog/processes.yaml
+  - include:
+      file: /db/changelog/users.yaml
+  - include:
+      file: /db/changelog/email-verification-tokens.yaml
+  - include:
+      file: /db/changelog/password-reset-tokens.yaml
+  - include:
+      file: /db/changelog/api-keys.yaml
+  - include:
+      file: /db/changelog/update-default-user-passwords.yaml

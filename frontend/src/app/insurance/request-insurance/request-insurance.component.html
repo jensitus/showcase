@@ -1,0 +1,6 @@
+@if (insuranceType === 'HOUSEHOLD_INSURANCE') {
+  <app-request-household [insuranceType]="insuranceType" [customerId]="customerId" />
+} @else if (insuranceType === 'LIABILITY_INSURANCE') {
+  <app-request-liability [insuranceType]="insuranceType" [customerId]="customerId" />
+}
+

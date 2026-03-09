@@ -1,0 +1,60 @@
+
+<div class="process-definition-overview">
+    <div class="header">
+        <h2>Process Definition Overview</h2>
+    </div>
+
+    <div class="content-grid">
+        <!-- Sidebar with process definition list -->
+        <div class="sidebar">
+            <h3>Process Definitions</h3>
+
+            @if (loading()) {
+                <div class="loading">Loading...</div>
+            }
+
+            @if (error()) {
+                <div class="error">{{ error() }}</div>
+            }
+
+            <div class="definition-list">
+                @for (definition of processDefinitions(); track definition.id) {
+                    <div
+                            class="definition-item"
+                            [class.selected]="selectedDefinition()?.id === definition.id"
+                            (click)="selectDefinition(definition)">
+                        <div class="definition-header">
+                            <strong>{{ definition.name || definition.key }}</strong>
+                            <span class="version-badge">v{{ definition.version }}</span>
+                        </div>
+                        <div class="definition-details">
+              <span class="detail-item">
+                <small>Tenant: {{ definition.tenantId }}</small>
+              </span>
+                            <span class="detail-item instances">
+                <small>Running: {{ definition.runningInstances }}</small>
+              </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Main content area with diagram viewer -->
+        <div class="main-content">
+            @if (selectedDefinition()) {
+                <div class="viewer-container">
+                    <app-bpmn-definition-viewer
+                            [processDefinitionKey]="selectedDefinition()!.key"
+                            [tenantId]="selectedDefinition()!.tenantId"
+                            [version]="selectedDefinition()!.version">
+                    </app-bpmn-definition-viewer>
+                </div>
+            } @else {
+                <div class="empty-state">
+                    <p>Select a process definition to view all running instances</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

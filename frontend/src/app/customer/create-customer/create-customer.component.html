@@ -1,0 +1,122 @@
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h3>{{ 'CREATE_CUSTOMER.TITLE' | translate }}</h3>
+      <p class="text-muted">{{ 'CREATE_CUSTOMER.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+  <div class="row">
+  <div class="col-md-6">
+    <div class="row pt-3">
+      <div class="col">
+        <label for="firstname">{{ 'CREATE_CUSTOMER.FIRST_NAME' | translate }}</label>
+        <input id="firstname" type="text" class="form-control" [(ngModel)]="firstname">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="lastname">{{ 'CREATE_CUSTOMER.LAST_NAME' | translate }}</label>
+        <input id="lastname" type="text" [(ngModel)]="lastname" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <div class="input-group">
+                <label class="input-group-text">{{ 'CREATE_CUSTOMER.GENDER' | translate }}</label>
+                <select class="form-select" [(ngModel)]="gender">
+                    @for (gender of Gender | keyvalue; track gender) {
+                        <option [value]="gender.value">{{gender.key}}</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ##################### -->
+    <div class="pt-3">
+
+      <form class="row row-cols-sm-auto">
+        <div class="col-12">
+          <label for="dateOfBirth">{{ 'CREATE_CUSTOMER.DATE_OF_BIRTH' | translate }}</label>
+          <div class="input-group">
+            <input
+              id="dateOfBirth"
+              class="form-control"
+              placeholder="yyyy-mm-dd"
+              name="dp"
+              [(ngModel)]="model"
+              ngbDatepicker
+              #d="ngbDatepicker"
+            />
+            <button class="btn btn-outline-secondary bi bi-calendar3" (click)="d.toggle()" type="button"></button>
+          </div>
+        </div>
+      </form>
+
+      <hr/>
+
+
+    </div>
+    <!-- ##################### -->
+    <div class="row pt-3">
+      <div class="col">
+        <label for="email">{{ 'CREATE_CUSTOMER.EMAIL' | translate }}</label>
+        <input id="email" type="email" [(ngModel)]="email" class="form-control" readonly>
+        <small class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          {{ 'CREATE_CUSTOMER.EMAIL_NOTE' | translate }}
+        </small>
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="email">{{ 'CREATE_CUSTOMER.PHONE' | translate }}</label>
+        <input id="phoneNumber" type="email" [(ngModel)]="phoneNumber" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="street">{{ 'CREATE_CUSTOMER.STREET' | translate }}</label>
+        <input id="street" type="text" [(ngModel)]="street" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="zip-code">{{ 'CREATE_CUSTOMER.ZIP_CODE' | translate }}</label>
+        <input id="zip-code" type="text" [(ngModel)]="zipCode" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="city">{{ 'CREATE_CUSTOMER.CITY' | translate }}</label>
+        <input id="city" type="text" [(ngModel)]="city" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <label for="country">{{ 'CREATE_CUSTOMER.COUNTRY' | translate }}</label>
+        <input id="country" type="text" [(ngModel)]="country" class="form-control">
+      </div>
+    </div>
+
+    <div class="row pt-3">
+      <div class="col">
+        <button class="btn btn-outline-success" (click)="create()">{{ 'CREATE_CUSTOMER.SUBMIT' | translate }}</button>
+      </div>
+    </div>
+    <div class="row pt-2">
+      <div class="col">
+        <small class="text-muted"><i>{{ 'CREATE_CUSTOMER.ALL_REQUIRED' | translate }}</i></small>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

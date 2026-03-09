@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: cibdemo
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: none
+        show-sql: true
+        temp.use_jdbc_metadata_defaults: false
+  datasource:
+    url: jdbc:postgresql://localhost:5555/cib
+    username: insurance
+    password: insurance
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+  liquibase:
+    enabled: true
+    change-log: classpath:/config/liquibase/db.changelog-master.xml
+  config:
+    import:
+      - optional:classpath:cibseven-webclient.properties
+  jersey:
+    application-path: /engine-rest
+camunda.bpm:
+  admin-user:
+    id: demo
+    password: demo
+    firstName: Demo
+  filter:
+    create: All tasks
+  webapp:
+    enabled: true
+cibseven:
+  webclient:
+    services:
+      basePath: services/v1
+    # Engine rest
+    engineRest:
+      url: http://localhost:7001
+    authentication:
+      jwtSecret: "RtURHZ7SQYfLoX902wcjlvduW2qe9g0bjMUczmffjiTjzU9phbv3mK54zHMqeGK6cqgoEBTIUE6RqwvemSqbpD40qUPXVRElvDHGhn4OAEfjeEP2ANah8GJejSA08E820mForcQHBmediqg2DzIrxnDXyf2"
+    # BPM provider for Enterprise Edition
+    # bpm:
+    #   provider: org.cibseven.webapp.providers.SevenProviderEE
+server:
+  port: 7001
+
+# Swagger / OpenAPI configuration
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    # Point Swagger UI to the engine REST OpenAPI descriptor provided by cibseven-engine-rest-openapi
+    # Depending on the library version, the descriptor may be available at /engine-rest/openapi or /engine-rest/openapi.json
+    urls:
+      - name: CIB OpenAPI (JSON)
+        url: /cib-openapi.json
+      - name: CIB OpenAPI (YAML)
+        url: /cib-openapi
+      - name: CIB Engine REST (YAML)
+        url: /engine-rest/openapi
+      - name: CIB Engine REST (JSON)
+        url: /engine-rest/openapi.json
+      # Some environments expose the REST API under /rest instead of /engine-rest
+      - name: CIB REST (YAML)
+        url: /rest/openapi
+      - name: CIB REST (JSON)
+        url: /rest/openapi.json
+      # Fallback: some distributions expose OpenAPI at the root path
+      - name: Root OpenAPI (YAML)
+        url: /openapi
+      - name: Root OpenAPI (JSON)
+        url: /openapi.json
+    operationsSorter: method
+    tagsSorter: alpha
+
+workflow-api:
+  api-key: NMqyw8N9JZavpsSXwb8Cjpi_536-Lvw-9dZNclM5Tsw # KEV7RqftSo5WLz9yxCxur17ct3Mx3jyzIH5FJuPjcG4
+

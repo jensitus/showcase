@@ -1,0 +1,39 @@
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        Approve
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col">
+            Antrag dennoch genehmigen:
+          </div>
+          <div class="col">
+            <div class="form-check">
+              <input class="form-check-input"
+                     type="checkbox"
+                     [(ngModel)]="approve"
+                     id="riskAssessmentApprove">
+              <label class="form-check-label" for="riskAssessmentApprove">
+                @if (approve) {
+                  ja
+                } @else {
+                  nein
+                }
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="row pt-3">
+  <div class="col-md-4">
+<!--    <button class="btn btn-sm btn-outline-info" (click)="complete()">Complete Task</button>-->
+  </div>
+</div>

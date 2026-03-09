@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: customer
+      author: jens
+      changes:
+        - createTable:
+            tableName: CUSTOMER
+            columns:
+              - column:
+                    name: id
+                    type: uuid
+                    constraints:
+                      primaryKey: true
+                      nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+              - column:
+                  name: updated_at
+                  type: timestamp
+              - column:
+                  name: GENDER
+                  type: int
+              - column:
+                  name: FIRSTNAME
+                  type: varchar(128)
+              - column:
+                  name: LASTNAME
+                  type: varchar(128)
+              - column:
+                  name: DATE_OF_BIRTH
+                  type: date
+              - column:
+                  name: PHONE_NUMBER
+                  type: varchar(128)
+              - column:
+                  name: EMAIL_ADDRESS
+                  type: varchar(128)
+              - column:
+                  name: street
+                  type: varchar(128)
+              - column:
+                  name: zip_code
+                  type: varchar(16)
+              - column:
+                  name: city
+                  type: varchar(128)
+              - column:
+                  name: country
+                  type: varchar(128)
+              - column:
+                  name: customer_number
+                  type: int

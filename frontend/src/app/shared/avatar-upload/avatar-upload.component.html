@@ -1,0 +1,58 @@
+
+<div class="avatar-upload">
+    <div class="avatar-preview">
+        <app-avatar
+                [avatarUrl]="previewUrl || currentAvatarUrl"
+                [firstName]="firstName"
+                [lastName]="lastName"
+                [username]="username"
+                size="xl"
+                shape="circle">
+        </app-avatar>
+
+        <div class="avatar-overlay" (click)="triggerFileInput()">
+            <i class="bi bi-camera-fill"></i>
+        </div>
+    </div>
+
+    <input
+            type="file"
+            id="avatar-input"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            style="display: none">
+
+    <div class="avatar-actions">
+        <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                (click)="triggerFileInput()"
+                [disabled]="uploading">
+            <i class="bi bi-upload me-1"></i>
+            Upload Photo
+        </button>
+
+        <button
+                *ngIf="currentAvatarUrl"
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                (click)="deleteAvatar()"
+                [disabled]="uploading">
+            <i class="bi bi-trash me-1"></i>
+            Remove
+        </button>
+    </div>
+
+    <div class="text-muted small mt-2">
+        Recommended: Square image, at least 200x200px, max 5MB
+    </div>
+
+    <div class="alert alert-danger mt-2" *ngIf="errorMessage">
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="uploading" class="mt-2">
+        <div class="spinner-border spinner-border-sm me-2"></div>
+        <span>Uploading...</span>
+    </div>
+</div>

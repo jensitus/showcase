@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-tasks-table
+      author: developer
+      changes:
+        - createTable:
+            tableName: TASKS
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: assignee
+                  type: VARCHAR(255)
+              - column:
+                  name: created
+                  type: TIMESTAMP
+              - column:
+                  name: execution_id
+                  type: VARCHAR(255)
+              - column:
+                  name: process_definition_id
+                  type: VARCHAR(255)
+              - column:
+                  name: process_instance_id
+                  type: VARCHAR(255)
+              - column:
+                  name: task_definition_key
+                  type: VARCHAR(255)
+              - column:
+                  name: form_key
+                  type: VARCHAR(255)
+              - column:
+                  name: tenant_id
+                  type: VARCHAR(255)
+              - column:
+                  name: task_state
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: add_taskId
+      author: jensitus
+      changes:
+        - addColumn:
+            tableName: TASKS
+            columns:
+              - column:
+                  name: task_id
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: change_id_to_uuid
+      author: jensitus
+      changes:
+        - modifyDataType:
+            tableName: TASKS
+            columnName: id
+            newDataType: UUID
+
+  - changeSet:
+      id: add-additional-info-and-config-to-task
+      author: jensitus
+      changes:
+        - addColumn:
+            tableName: TASKS
+            columns:
+              - column:
+                  name: additional_info
+                  type: varchar(10485760)
+              - column:
+                  name: config
+                  type: VARCHAR(2048)
+              - column:
+                  name: config_data
+                  type: VARCHAR(2048)

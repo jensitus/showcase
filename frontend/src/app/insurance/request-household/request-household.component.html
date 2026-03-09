@@ -1,0 +1,101 @@
+<h3>{{ 'INSURANCE.HOUSEHOLD_TITLE' | translate }}</h3>
+<div class="row pt-3">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        @if (customer === undefined) {
+          <p class="card-text placeholder-glow">
+            <span class="placeholder col-7"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-6"></span>
+            <span class="placeholder col-8"></span>
+          </p>
+        } @else {
+          <div class="row">
+            <div class="col-md-2">
+              {{ 'INSURANCE.CUSTOMER' | translate }}
+            </div>
+            <div class="col-md-4">
+              {{ customer.firstname + ' ' + customer.lastname }} <br>
+              {{ customer.dateOfBirth }} <br>
+              {{ customer.gender }} <br>
+              {{ customer.customerNumber }} <br>
+              {{ customer.street }} <br>
+              {{ customer.zipCode + ' ' + customer.city }} <br>
+              {{ customer.country }}
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-payment-schedule (chosenInsuranceSum)="showChosenInsuranceSum($event)"
+                      (chosenPaymentSchedule)="showChosenPaymentSchedule($event)"
+                      (chosenCoverage)="showChosenCoverage($event)" />
+
+<div class="row pt-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        {{ 'INSURANCE.RISK_PREMIUMS' | translate }}
+      </div>
+      <div class="card-body">
+        <div class="row pt-2">
+          <div class="col-md-4">
+            {{ 'INSURANCE.MUDSLIDE' | translate }}
+          </div>
+          <div class="col-md-2">
+            <input id="mudslide" type="checkbox" class="form-check-input" [(ngModel)]="mudslide_risk">
+          </div>
+          <div class="col-md-6">
+            @if (mudslide_risk) {
+              50.- €
+            }
+          </div>
+        </div>
+        <div class="row pt-2">
+          <div class="col-md-4">
+            {{ 'INSURANCE.FLOODING' | translate }}
+          </div>
+          <div class="col-md-2">
+            <input id="flood" type="checkbox" class="form-check-input" [(ngModel)]="flood_risk">
+          </div>
+          <div class="col-md-6">
+            @if (flood_risk) {
+              100.- €
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                {{ 'INSURANCE.MONTHLY_INCOME' | translate }}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <input id="sufficientIncome" type="checkbox" class="form-check-input" [(ngModel)]="sufficientIncome">
+                    </div>
+                    <div class="col-md-6">
+                        @if (sufficientIncome) {
+                            <b>></b> {{ 'INSURANCE.INCOME_OK' | translate }}
+                        } @else {
+                            <b><</b> {{ 'INSURANCE.INCOME_LOW' | translate }}
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row pt-3">
+  <div class="col-md-6">
+    <button class="btn btn-sm btn-outline-info" (click)="request_insurance()" [disabled]="!paymentSchedule">{{ 'INSURANCE.REQUEST' | translate }}</button>
+  </div>
+</div>

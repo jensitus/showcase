@@ -1,0 +1,30 @@
+/* You can add global styles to this file, and also import other style files */
+
+body {
+  background: #f8f9fa;
+  font-size: 0.9rem;
+}
+
+.cHBvDi {
+  color: #000000 !important;
+}
+
+.kAmlmH {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1030;
+}
+
+.new_row {
+  background-color: bisque;
+}
+
+@media screen and (max-width: 992px) {
+  .push-right {
+    .sidebar {
+      left: 235px !important;
+    }
+  }
+}

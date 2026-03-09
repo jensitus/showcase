@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: customer-insurance-relation
+      author: jens
+      changes:
+        - createTable:
+            tableName: CUSTOMER_INSURANCE
+            columns:
+              - column:
+                  name: CUSTOMER_ID
+                  type: uuid
+              - column:
+                  name: INSURANCE_ID
+                  type: uuid

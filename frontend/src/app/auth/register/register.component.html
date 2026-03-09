@@ -1,0 +1,173 @@
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h2>{{ 'AUTH.REGISTER.TITLE' | translate }}</h2>
+            <p class="text-muted">{{ 'AUTH.REGISTER.SUBTITLE' | translate }}</p>
+        </div>
+        @if (!registrationComplete()) {
+            <div class="register-body">
+                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">{{ 'AUTH.REGISTER.USERNAME' | translate }}</label>
+                        <input type="text"
+                                class="form-control"
+                                id="username"
+                                formControlName="username"
+                                [class.is-invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched">
+                        @if (registerForm.get('username')?.touched) {
+                            <div class="invalid-feedback">
+                                @if (registerForm.get('username')?.errors?.['required']) {
+                                    <span>{{ 'AUTH.REGISTER.USERNAME_REQUIRED' | translate }}</span>
+                                }
+                                @if (registerForm.get('username')?.errors?.['minlength']) {
+                                    <span>{{ 'AUTH.REGISTER.USERNAME_MINLENGTH' | translate }}</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{ 'AUTH.REGISTER.EMAIL' | translate }}</label>
+                        <input type="email"
+                                class="form-control"
+                                id="email"
+                                formControlName="email"
+                                [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                        @if (registerForm.get('email')?.touched) {
+                            <div class="invalid-feedback">
+                                @if (registerForm.get('email')?.errors?.['required']) {
+                                    <span>{{ 'AUTH.REGISTER.EMAIL_REQUIRED' | translate }}</span>
+                                }
+                                @if (registerForm.get('email')?.errors?.['email']) {
+                                    <span>{{ 'AUTH.REGISTER.EMAIL_INVALID' | translate }}</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- First Name -->
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">{{ 'AUTH.REGISTER.FIRST_NAME' | translate }}</label>
+                        <input type="text"
+                               class="form-control"
+                               id="firstName"
+                               formControlName="firstName">
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">{{ 'AUTH.REGISTER.LAST_NAME' | translate }}</label>
+                        <input type="text"
+                               class="form-control"
+                               id="lastName"
+                               formControlName="lastName">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">{{ 'AUTH.REGISTER.PASSWORD' | translate }}</label>
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               formControlName="password"
+                               [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                        @if (registerForm.get('password')?.touched) {
+                            <div class="invalid-feedback">
+                                @if (registerForm.get('password')?.errors?.['required']) {
+                                    <span>{{ 'AUTH.REGISTER.PASSWORD_REQUIRED' | translate }}</span>
+                                }
+                                @if (registerForm.get('password')?.errors?.['minlength']) {
+                                    <span>{{ 'AUTH.REGISTER.PASSWORD_MINLENGTH' | translate }}</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">{{ 'AUTH.REGISTER.CONFIRM_PASSWORD' | translate }}</label>
+                        <input type="password"
+                                class="form-control"
+                                id="confirmPassword"
+                                formControlName="confirmPassword"
+                                [class.is-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+                        @if (registerForm.get('confirmPassword')?.touched) {
+                            <div class="invalid-feedback">
+                                @if (registerForm.get('confirmPassword')?.errors?.['required']) {
+                                    <span>{{ 'AUTH.REGISTER.CONFIRM_PASSWORD_REQUIRED' | translate }}</span>
+                                }
+                                @if (registerForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
+                                    <span>{{ 'AUTH.REGISTER.PASSWORD_MISMATCH' | translate }}</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Error Message -->
+                    @if (errorMessage()) {
+                        <div class="alert alert-danger">
+                            {{ errorMessage() }}
+                        </div>
+                    }
+
+                    <!-- Success Message -->
+                    @if (successMessage()) {
+                        <div class="alert alert-success">
+                            {{ successMessage() }}
+                        </div>
+                    }
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                            class="btn btn-primary w-100 mb-3"
+                            [disabled]="loading()">
+                        @if (!loading()) {
+                            <span>{{ 'AUTH.REGISTER.SUBMIT' | translate }}</span>
+                        } @else {
+                            <span>
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                {{ 'AUTH.REGISTER.CREATING' | translate }}
+                            </span>
+                        }
+                    </button>
+
+                    <!-- Login Link -->
+                    <div class="text-center">
+                        <p class="mb-0">{{ 'AUTH.REGISTER.ALREADY_HAVE_ACCOUNT' | translate }} <a [routerLink]="['/login']" class="link-primary">{{ 'AUTH.REGISTER.LOGIN_HERE' | translate }}</a></p>
+                    </div>
+                </form>
+            </div>
+        } @else {
+            <!-- Registration Complete -->
+            <div class="register-body text-center">
+                <div class="success-icon mb-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+
+                <h4 class="mb-3">{{ 'AUTH.REGISTER.SUCCESS_TITLE' | translate }}</h4>
+
+                <div class="alert alert-info">
+                    <p class="mb-0">{{ 'AUTH.REGISTER.SUCCESS_INFO' | translate }}</p>
+                </div>
+
+                <button class="btn btn-outline-primary mb-3 w-100" (click)="resendVerificationEmail()" [disabled]="loading()">
+                    @if (!loading()) {
+                        <span>{{ 'AUTH.REGISTER.RESEND' | translate }}</span>
+                    } @else {
+                        <span>
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            {{ 'AUTH.REGISTER.SENDING' | translate }}
+                        </span>
+                    }
+                </button>
+
+                <button class="btn btn-primary w-100" (click)="navigateToLogin()">
+                    {{ 'AUTH.REGISTER.GO_TO_LOGIN' | translate }}
+                </button>
+            </div>
+        }
+    </div>
+</div>
