@@ -384,7 +384,7 @@ class UserServiceTest {
         private boolean passwordResetEmailSent = false;
 
         public StubEmailService() {
-            super();
+            super(null);
         }
 
         public boolean wasPasswordResetEmailSent() {
