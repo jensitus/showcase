@@ -25,6 +25,7 @@ spring:
     username: ${SMTP_USERNAME:}
     password: ${SMTP_PASSWORD:}
     from: ${SMTP_FROM:noreply@showcase.service-b.org}
+    test-connection: false
     properties:
       mail:
         smtp:
