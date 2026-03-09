@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/*
+This service is responsible for handling external tasks from CIB Seven.
+ */
+
 @Service
 @Slf4j
 public class ExternalTaskService {
