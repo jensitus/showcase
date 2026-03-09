@@ -1,8 +1,12 @@
 package org.service_b.workflow.security.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,72 +14,69 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
 
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+    private final JavaMailSender mailSender;
 
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
-    /**
-     * Sends verification email to user
-     * Note: This is a placeholder implementation.
-     * In production, integrate with actual email service (JavaMailSender, SendGrid, AWS SES, etc.)
-     */
+    @Value("${spring.mail.from:noreply@showcase.service-b.org}")
+    private String fromAddress;
+
     public void sendVerificationEmail(String email, String username, String token) {
         String verificationUrl = frontendUrl + "/verify-email?token=" + token;
-        
-        log.info("===========================================");
-        log.info("EMAIL VERIFICATION");
-        log.info("===========================================");
-        log.info("To: {}", email);
-        log.info("Subject: Verify your email address");
-        log.info("Username: {}", username);
-        log.info("Verification Link: {}", verificationUrl);
-        log.info("Token expires in 24 hours");
-        log.info("===========================================");
-        
-        // TODO: Integrate with actual email service
-        // Example with JavaMailSender:
-        // MimeMessage message = mailSender.createMimeMessage();
-        // MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        // helper.setTo(email);
-        // helper.setSubject("Verify your email address");
-        // helper.setText(buildEmailContent(username, verificationUrl), true);
-        // mailSender.send(message);
+        String subject = "Verify your email address";
+        String content = buildVerificationContent(username, verificationUrl);
+        send(email, subject, content);
     }
-    
-    /**
-     * Sends password reset email to user
-     * Note: This is a placeholder implementation.
-     * In production, integrate with actual email service (JavaMailSender, SendGrid, AWS SES, etc.)
-     */
+
     public void sendPasswordResetEmail(String email, String username, String token) {
         String resetUrl = frontendUrl + "/reset-password?token=" + token;
-
-        log.info("===========================================");
-        log.info("PASSWORD RESET");
-        log.info("===========================================");
-        log.info("To: {}", email);
-        log.info("Subject: Reset your password");
-        log.info("Username: {}", username);
-        log.info("Reset Link: {}", resetUrl);
-        log.info("Token expires in 1 hour");
-        log.info("===========================================");
-
-        // TODO: Integrate with actual email service
+        String subject = "Reset your password";
+        String content = buildPasswordResetContent(username, resetUrl);
+        send(email, subject, content);
     }
 
-    private String buildEmailContent(String username, String verificationUrl) {
+    private void send(String to, String subject, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Email sent to {}: {}", to, subject);
+        } catch (MessagingException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    private String buildVerificationContent(String username, String verificationUrl) {
         return String.format("""
             <html>
-            <body>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2>Welcome %s!</h2>
                 <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
-                <p><a href="%s">Verify Email</a></p>
-                <p>This link will expire in 24 hours.</p>
-                <p>If you didn't create this account, please ignore this email.</p>
+                <p><a href="%s" style="background:#0d6efd;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;">Verify Email</a></p>
+                <p style="color:#666;font-size:0.9em;">This link will expire in 24 hours.</p>
+                <p style="color:#666;font-size:0.9em;">If you didn't create this account, please ignore this email.</p>
             </body>
             </html>
             """, username, verificationUrl);
+    }
+
+    private String buildPasswordResetContent(String username, String resetUrl) {
+        return String.format("""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Password Reset</h2>
+                <p>Hi %s,</p>
+                <p>You requested a password reset. Click the link below to set a new password:</p>
+                <p><a href="%s" style="background:#0d6efd;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;">Reset Password</a></p>
+                <p style="color:#666;font-size:0.9em;">This link will expire in 1 hour.</p>
+                <p style="color:#666;font-size:0.9em;">If you didn't request this, please ignore this email.</p>
+            </body>
+            </html>
+            """, username, resetUrl);
     }
 }
