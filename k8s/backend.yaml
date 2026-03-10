@@ -48,11 +48,11 @@ spec:
             - name: WORKFLOW_SERVICE_BASE_URL
               value: http://backend:8080
             - name: SMTP_HOST
-              value: smtp-relay.brevo.com
+              value: smtp.protonmail.ch
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_FROM
-              value: noreply@showcase.service-b.org
+              value: info@service-b.org
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:
