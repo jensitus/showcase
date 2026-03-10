@@ -17,6 +17,11 @@
       <i class="bi bi-people"></i>&nbsp;
       <span>{{ 'NAV.CUSTOMERS' | translate }}</span>
     </a>
+    <a [routerLink]="['/deploy']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+       [attr.data-label]="'NAV.DEPLOY' | translate">
+      <i class="bi bi-cloud-upload"></i>&nbsp;
+      <span>{{ 'NAV.DEPLOY' | translate }}</span>
+    </a>
       @if (!isLoggedIn()) {
           <a [routerLink]="['/login']" [routerLinkActive]="['router-link-active']" class="list-group-item"
              [attr.data-label]="'NAV.LOGIN' | translate">

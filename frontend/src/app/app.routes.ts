@@ -18,6 +18,7 @@ import {ResetPasswordComponent} from "./auth/reset-password/reset-password.compo
 import {ChangePasswordComponent} from "./auth/change-password/change-password.component";
 import {UserProfileComponent} from "./auth/user-profile/user-profile.component";
 import {CompleteProfileComponent} from "./auth/complete-profile/complete-profile.component";
+import {BpmnDeploymentComponent} from "./workflow/bpmn-deployment/bpmn-deployment.component";
 
 export const routes: Routes = [
     {path: '', component: HomeComponent},
@@ -39,4 +40,5 @@ export const routes: Routes = [
     {path: 'change-password', component: ChangePasswordComponent},
     {path: 'profile', component: UserProfileComponent},
     {path: 'complete-profile', component: CompleteProfileComponent},
+    {path: 'deploy', component: BpmnDeploymentComponent},
 ];

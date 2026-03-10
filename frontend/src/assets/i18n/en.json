@@ -5,7 +5,18 @@
     "CUSTOMERS": "Customers",
     "LOGIN": "Login",
     "LOGOUT": "Logout",
-    "COLLAPSE_SIDEBAR": "Collapse Sidebar"
+    "COLLAPSE_SIDEBAR": "Collapse Sidebar",
+    "DEPLOY": "Deploy BPMN"
+  },
+  "DEPLOY": {
+    "TITLE": "Deploy BPMN Process",
+    "SUBTITLE": "Upload a BPMN file to deploy it to the workflow engine.",
+    "FILE": "BPMN File",
+    "NAME": "Deployment Name",
+    "TENANT": "Tenant ID",
+    "SUBMIT": "Deploy",
+    "SUCCESS": "Deployment successful!",
+    "ERROR": "Deployment failed."
   },
   "AUTH": {
     "LOGIN": {

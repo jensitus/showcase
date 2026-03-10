@@ -1,0 +1,41 @@
+<div class="container mt-4">
+  <h2>{{ 'DEPLOY.TITLE' | translate }}</h2>
+  <p class="text-muted">{{ 'DEPLOY.SUBTITLE' | translate }}</p>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label">{{ 'DEPLOY.FILE' | translate }}</label>
+        <input type="file" class="form-control" accept=".bpmn,.xml" (change)="onFileSelected($event)">
+        @if (selectedFile()) {
+          <div class="form-text">{{ selectedFile()!.name }}</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ 'DEPLOY.NAME' | translate }}</label>
+        <input type="text" class="form-control" [ngModel]="deploymentName()" (ngModelChange)="deploymentName.set($event)">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ 'DEPLOY.TENANT' | translate }}</label>
+        <input type="text" class="form-control" [ngModel]="tenantId()" (ngModelChange)="tenantId.set($event)">
+      </div>
+
+      <button class="btn btn-primary" (click)="deploy()"
+              [disabled]="!selectedFile() || !deploymentName() || status() === 'loading'">
+        @if (status() === 'loading') {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        {{ 'DEPLOY.SUBMIT' | translate }}
+      </button>
+
+      @if (status() === 'success') {
+        <div class="alert alert-success mt-3">{{ 'DEPLOY.SUCCESS' | translate }}</div>
+      }
+      @if (status() === 'error') {
+        <div class="alert alert-danger mt-3">{{ message() }}</div>
+      }
+    </div>
+  </div>
+</div>

@@ -5,7 +5,18 @@
     "CUSTOMERS": "Kunden",
     "LOGIN": "Anmelden",
     "LOGOUT": "Abmelden",
-    "COLLAPSE_SIDEBAR": "Seitenleiste einklappen"
+    "COLLAPSE_SIDEBAR": "Seitenleiste einklappen",
+    "DEPLOY": "BPMN deployen"
+  },
+  "DEPLOY": {
+    "TITLE": "BPMN-Prozess deployen",
+    "SUBTITLE": "Laden Sie eine BPMN-Datei hoch, um sie in die Workflow-Engine zu deployen.",
+    "FILE": "BPMN-Datei",
+    "NAME": "Deployment-Name",
+    "TENANT": "Tenant-ID",
+    "SUBMIT": "Deployen",
+    "SUCCESS": "Deployment erfolgreich!",
+    "ERROR": "Deployment fehlgeschlagen."
   },
   "AUTH": {
     "LOGIN": {
