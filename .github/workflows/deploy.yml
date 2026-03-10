@@ -72,7 +72,7 @@ jobs:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
-          source: "k8s/namespace.yaml,k8s/engine.yaml,k8s/backend.yaml,k8s/frontend.yaml,k8s/ingress.yaml,k8s/postgres.yaml"
+          source: "k8s/namespace.yaml,k8s/engine.yaml,k8s/backend.yaml,k8s/frontend.yaml,k8s/ingress.yaml,k8s/engine-ingress.yaml,k8s/postgres.yaml"
           target: /opt/insurance/
           strip_components: 0
 
@@ -98,6 +98,7 @@ jobs:
             kubectl apply -f /opt/insurance/k8s/backend.yaml
             kubectl apply -f /opt/insurance/k8s/frontend.yaml
             kubectl apply -f /opt/insurance/k8s/ingress.yaml
+            kubectl apply -f /opt/insurance/k8s/engine-ingress.yaml
 
             # Force rollout so new :latest images are pulled
             kubectl rollout restart deployment/engine -n insurance
