@@ -37,6 +37,11 @@ spec:
                 secretKeyRef:
                   name: insurance-secrets
                   key: workflow-api-key
+            - name: CAMUNDA_BPM_ADMIN_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: camunda-admin-password
           readinessProbe:
             tcpSocket:
               port: 7001
