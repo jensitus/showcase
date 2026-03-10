@@ -19,7 +19,7 @@ public class EmailService {
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
-    @Value("${spring.mail.from:noreply@showcase.service-b.org}")
+    @Value("${spring.mail.from:info@service-b.org}")
     private String fromAddress;
 
     public void sendVerificationEmail(String email, String username, String token) {
