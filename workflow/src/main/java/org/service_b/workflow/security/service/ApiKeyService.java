@@ -108,6 +108,25 @@ public class ApiKeyService {
         return plainTextKey;
     }
 
+    /**
+     * Stores a pre-configured API key for a service (e.g. from an environment variable).
+     * The plaintext key is hashed before storage.
+     */
+    @Transactional
+    public void storeApiKey(String serviceName, String description, String plainTextKey) {
+        if (apiKeyRepository.existsByServiceName(serviceName)) {
+            return;
+        }
+        ApiKey apiKey = ApiKey.builder()
+                              .keyHash(passwordEncoder.encode(plainTextKey))
+                              .serviceName(serviceName)
+                              .description(description)
+                              .enabled(true)
+                              .build();
+        apiKeyRepository.save(apiKey);
+        log.info("Stored pre-configured API key for service: {}", serviceName);
+    }
+
     private String generateSecureKey() {
         byte[] keyBytes = new byte[API_KEY_LENGTH];
         secureRandom.nextBytes(keyBytes);

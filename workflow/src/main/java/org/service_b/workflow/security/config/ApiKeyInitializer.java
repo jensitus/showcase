@@ -4,18 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.security.repository.ApiKeyRepository;
 import org.service_b.workflow.security.service.ApiKeyService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * Initializes a test API key for development purposes.
- * Only active when the 'dev' profile is enabled.
+ * Ensures an API key exists for the Camunda engine service on every startup.
  *
- * To use: Add spring.profiles.active=dev to application.yaml
+ * - If CAMUNDA_SERVICE_API_KEY env var is set: stores that key (idempotent).
+ * - Otherwise: generates a random key and logs it (development fallback).
  */
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
 public class ApiKeyInitializer implements CommandLineRunner {
@@ -23,26 +22,33 @@ public class ApiKeyInitializer implements CommandLineRunner {
     private final ApiKeyService apiKeyService;
     private final ApiKeyRepository apiKeyRepository;
 
+    @Value("${camunda.service.api-key:}")
+    private String preconfiguredApiKey;
+
     @Override
     public void run(String... args) {
         String serviceName = "camunda-service";
 
-        if (!apiKeyRepository.existsByServiceName(serviceName)) {
+        if (apiKeyRepository.existsByServiceName(serviceName)) {
+            log.info("API key for '{}' already exists — skipping", serviceName);
+            return;
+        }
+
+        if (preconfiguredApiKey != null && !preconfiguredApiKey.isBlank()) {
+            apiKeyService.storeApiKey(serviceName, "API key for Camunda engine (pre-configured)", preconfiguredApiKey);
+        } else {
             String apiKey = apiKeyService.generateApiKey(
                     serviceName,
                     "API key for Camunda service on port 7001",
-                    null  // No expiration for dev
+                    null
             );
-
             log.info("===========================================");
-            log.info("DEVELOPMENT API KEY GENERATED");
+            log.info("API KEY GENERATED — copy to CAMUNDA_SERVICE_API_KEY");
             log.info("===========================================");
             log.info("Service: {}", serviceName);
             log.info("API Key: {}", apiKey);
             log.info("Use header: X-API-Key: {}", apiKey);
             log.info("===========================================");
-        } else {
-            log.info("API key for '{}' already exists", serviceName);
         }
     }
 }

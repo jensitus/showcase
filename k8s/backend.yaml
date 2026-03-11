@@ -63,6 +63,11 @@ spec:
                 secretKeyRef:
                   name: insurance-secrets
                   key: smtp-password
+            - name: CAMUNDA_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: workflow-api-key
           readinessProbe:
             tcpSocket:
               port: 8080
