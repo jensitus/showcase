@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import BpmnJS from 'bpmn-js/lib/NavigatedViewer';
+import { environment } from '../../../environments/environment';
 import {forkJoin, Subscription} from "rxjs";
 import {CommonModule} from "@angular/common";
 
@@ -70,7 +71,7 @@ export class BpmnViewerComponent implements OnInit, OnDestroy, OnChanges {
         this.loading = true;
         this.error = null;
 
-        const url = `http://localhost:8080/workflows/diagram/${this.workflowKey}/tenant-id/${this.tenantId}`;
+        const url = `${environment.api_url}/workflows/diagram/${this.workflowKey}/tenant-id/${this.tenantId}`;
 
         const sub = this.http.get<DiagramResponse>(url).subscribe({
             next: (response: DiagramResponse) => {
@@ -147,7 +148,7 @@ export class BpmnViewerComponent implements OnInit, OnDestroy, OnChanges {
         }
 
         const requests = keys.map(key =>
-            this.http.get<FlowNodeInstance[]>(`http://localhost:8080/workflows/diagram/flow-node-instance/${key}`)
+            this.http.get<FlowNodeInstance[]>(`${environment.api_url}/workflows/diagram/flow-node-instance/${key}`)
         );
 
         const sub = forkJoin(requests).subscribe({

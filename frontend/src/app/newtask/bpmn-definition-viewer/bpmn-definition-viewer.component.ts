@@ -1,6 +1,7 @@
 import { Component, inject, Input, OnInit, OnDestroy, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { Subscription, forkJoin } from 'rxjs';
 import BpmnJS from 'bpmn-js/lib/NavigatedViewer';
 
@@ -83,7 +84,7 @@ export class BpmnDefinitionViewerComponent implements OnInit, OnDestroy, OnChang
         this.error = null;
 
         // Build URL based on whether version is specified
-        let diagramUrl = `http://localhost:8080/workflows/diagram/${this.processDefinitionKey}`; // /tenant-id/${this.tenantId}
+        let diagramUrl = `${environment.api_url}/workflows/diagram/${this.processDefinitionKey}`; // /tenant-id/${this.tenantId}
         if (this.version !== undefined) {
             diagramUrl += `/version/${this.version}`;
         }
@@ -130,7 +131,7 @@ export class BpmnDefinitionViewerComponent implements OnInit, OnDestroy, OnChang
     }
 
     private loadProcessInstances(): void {
-        let instancesUrl = `http://localhost:8080/workflows/process-instances/${this.processDefinitionKey}/tenant-id/${this.tenantId}`;
+        let instancesUrl = `${environment.api_url}/workflows/process-instances/${this.processDefinitionKey}/tenant-id/${this.tenantId}`;
         if (this.version !== undefined) {
             instancesUrl += `/version/${this.version}`;
         }
@@ -160,7 +161,7 @@ export class BpmnDefinitionViewerComponent implements OnInit, OnDestroy, OnChang
     private loadAllFlowNodeInstances(instances: ProcessInstance[]): void {
         // Create requests for all process instances
         const requests = instances.map(instance => {
-            const url = `http://localhost:8080/workflows/diagram/flow-node-instance/${instance.id}`;
+            const url = `${environment.api_url}/workflows/diagram/flow-node-instance/${instance.id}`;
             return this.http.get<FlowNodeInstance[]>(url);
         });
 

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { BpmnDefinitionViewerComponent } from '../bpmn-definition-viewer/bpmn-definition-viewer.component';
 import { ProcessDefinition } from '../model/process-definition';
 
@@ -28,7 +29,7 @@ export class ProcessDefinitionOverviewComponent implements OnInit {
         this.loading.set(true);
         this.error.set(null);
 
-        this.http.get<ProcessDefinition[]>('http://localhost:8080/workflows/process-definitions').subscribe({
+        this.http.get<ProcessDefinition[]>(`${environment.api_url}/workflows/process-definitions`).subscribe({
             next: (definitions) => {
                 this.processDefinitions.set(definitions);
                 this.loading.set(false);
