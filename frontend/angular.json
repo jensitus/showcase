@@ -31,16 +31,10 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              {
-                "glob": "**/*",
-                "input": "node_modules/bootstrap-icons/font/fonts",
-                "output": "/fonts"
-              }
             ],
             "styles": [
               "node_modules/bootstrap/scss/bootstrap.scss",
-              "src/bootstrap-icons.scss",
-              "src/styles.scss"
+"src/styles.scss"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
