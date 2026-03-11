@@ -30,11 +30,16 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/bootstrap-icons/font/fonts",
+                "output": "/fonts"
+              }
             ],
             "styles": [
               "node_modules/bootstrap/scss/bootstrap.scss",
-              "node_modules/bootstrap-icons/font/bootstrap-icons.scss",
+              "src/bootstrap-icons.scss",
               "src/styles.scss"
             ],
             "scripts": [
