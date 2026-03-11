@@ -79,5 +79,6 @@ springdoc:
     tagsSorter: alpha
 
 workflow-api:
-  api-key: NMqyw8N9JZavpsSXwb8Cjpi_536-Lvw-9dZNclM5Tsw # KEV7RqftSo5WLz9yxCxur17ct3Mx3jyzIH5FJuPjcG4
+  base-url: ${WORKFLOW_API_BASE_URL:http://localhost:8080}
+  api-key: ${WORKFLOW_API_API_KEY:}
 

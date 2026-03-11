@@ -32,6 +32,8 @@ spec:
                 secretKeyRef:
                   name: insurance-secrets
                   key: postgres-password
+            - name: WORKFLOW_API_BASE_URL
+              value: http://backend:8080
             - name: WORKFLOW_API_API_KEY
               valueFrom:
                 secretKeyRef:
