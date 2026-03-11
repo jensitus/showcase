@@ -1,0 +1,51 @@
+<div class="container-fluid py-4">
+  <h2 class="mb-4">{{ 'ADMIN.USERS' | translate }}</h2>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>{{ 'AUTH.LOGIN.USERNAME' | translate }}</th>
+            <th>{{ 'AUTH.REGISTER.EMAIL' | translate }}</th>
+            <th>{{ 'ADMIN.ROLE' | translate }}</th>
+            <th>{{ 'PROFILE.MEMBER_SINCE' | translate }}</th>
+            <th>{{ 'ADMIN.SAVE_ROLE' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <select class="form-select form-select-sm w-auto"
+                        [(ngModel)]="pendingRoles[user.id]">
+                  <option value="USER">USER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </td>
+              <td>{{ user.createdAt | date:'yyyy-MM-dd' }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary"
+                        (click)="saveRole(user)">
+                  {{ 'ADMIN.SAVE_ROLE' | translate }}
+                </button>
+                @if (successMessages[user.id]) {
+                  <span class="ms-2 text-success small">{{ 'ADMIN.ROLE_UPDATED' | translate }}</span>
+                }
+                @if (errorMessages[user.id]) {
+                  <span class="ms-2 text-danger small">{{ 'ADMIN.ROLE_UPDATE_ERROR' | translate }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

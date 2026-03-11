@@ -1,16 +1,16 @@
 
 <div class="process-definition-overview">
     <div class="header">
-        <h2>Process Definition Overview</h2>
+        <h2>{{ 'PROCESS_DEF.TITLE' | translate }}</h2>
     </div>
 
     <div class="content-grid">
         <!-- Sidebar with process definition list -->
         <div class="sidebar">
-            <h3>Process Definitions</h3>
+            <h3>{{ 'PROCESS_DEF.SUBTITLE' | translate }}</h3>
 
             @if (loading()) {
-                <div class="loading">Loading...</div>
+                <div class="loading">{{ 'PROCESS_DEF.LOADING' | translate }}</div>
             }
 
             @if (error()) {
@@ -29,10 +29,10 @@
                         </div>
                         <div class="definition-details">
               <span class="detail-item">
-                <small>Tenant: {{ definition.tenantId }}</small>
+                <small>{{ 'PROCESS_DEF.TENANT' | translate }}: {{ definition.tenantId }}</small>
               </span>
                             <span class="detail-item instances">
-                <small>Running: {{ definition.runningInstances }}</small>
+                <small>{{ 'PROCESS_DEF.RUNNING' | translate }}: {{ definition.runningInstances }}</small>
               </span>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                 </div>
             } @else {
                 <div class="empty-state">
-                    <p>Select a process definition to view all running instances</p>
+                    <p>{{ 'PROCESS_DEF.EMPTY_STATE' | translate }}</p>
                 </div>
             }
         </div>

@@ -28,23 +28,23 @@ public class RestClientService {
         this.restClient = restClientBuilder.build();
     }
 
-    public void sendTaskToList(TaskDto taskDto) {
-        ResponseEntity<Void> response = restClient.post()
-                                                  .uri(taskListUrl + "/tasks")
-                                                  .body(taskDto)
-                                                  .retrieve()
-                                                  .toBodilessEntity();
-        log.info(response.toString());
-    }
+//    public void sendTaskToList(TaskDto taskDto) {
+//        ResponseEntity<Void> response = restClient.post()
+//                                                  .uri(taskListUrl + "/tasks")
+//                                                  .body(taskDto)
+//                                                  .retrieve()
+//                                                  .toBodilessEntity();
+//        log.info(response.toString());
+//    }
 
-    public void informTaskListAboutCompletedUserTask(CompleteTaskEvent completeTaskEvent) {
-        ResponseEntity<Void> response = restClient.post()
-                                                  .uri(taskListUrl + "/tasks/complete")
-                                                  .body(completeTaskEvent)
-                                                  .retrieve()
-                                                  .toBodilessEntity();
-        log.info(response.toString());
-    }
+//    public void informTaskListAboutCompletedUserTask(CompleteTaskEvent completeTaskEvent) {
+//        ResponseEntity<Void> response = restClient.post()
+//                                                  .uri(taskListUrl + "/tasks/complete")
+//                                                  .body(completeTaskEvent)
+//                                                  .retrieve()
+//                                                  .toBodilessEntity();
+//        log.info(response.toString());
+//    }
 
     public ProcessInstanceWithVariableDto startCib7Process(String processDefinitionKey, StartProcessBody body, String tenantId) {
         ResponseEntity<ProcessInstanceWithVariableDto> entity = restClient.post()

@@ -26,6 +26,7 @@ export class SidebarComponent implements OnInit {
   private loginService = inject(LoginService);
 
   readonly isLoggedIn = computed(() => this.loginService.currentUser() !== null);
+  readonly isAdmin = computed(() => this.loginService.currentUser()?.role === 'ADMIN');
 
   constructor(public router: Router) {
     this.router.events.subscribe(val => {

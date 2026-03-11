@@ -325,6 +325,22 @@
     "RUNNING": "Running instances",
     "LINK": "link"
   },
+  "PROCESS_DEF": {
+    "TITLE": "Process Definition Overview",
+    "SUBTITLE": "Process Definitions",
+    "LOADING": "Loading...",
+    "TENANT": "Tenant",
+    "RUNNING": "Running",
+    "EMPTY_STATE": "Select a process definition to view all running instances"
+  },
+  "ADMIN": {
+    "SECTION": "Administration",
+    "USERS": "User Management",
+    "ROLE": "Role",
+    "SAVE_ROLE": "Save",
+    "ROLE_UPDATED": "Role updated",
+    "ROLE_UPDATE_ERROR": "Update failed"
+  },
   "HOME": {
     "TITLE": "BPMN",
     "INTRO": "BPMN -> Business Process Modeling Notation",

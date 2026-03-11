@@ -7,6 +7,7 @@ import org.service_b.workflow.security.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -29,6 +30,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableScheduling
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -50,6 +52,7 @@ public class SecurityConfig {
                 requests.requestMatchers("/api/auth/forgot-password").permitAll();
                 requests.requestMatchers("/api/auth/reset-password").permitAll();
                 requests.requestMatchers("/server-send-insurance").permitAll();
+                requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
                 requests.anyRequest().authenticated();
             })
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

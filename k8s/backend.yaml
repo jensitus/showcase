@@ -68,6 +68,16 @@ spec:
                 secretKeyRef:
                   name: insurance-secrets
                   key: workflow-api-key
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: admin-username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: admin-password
           readinessProbe:
             tcpSocket:
               port: 8080

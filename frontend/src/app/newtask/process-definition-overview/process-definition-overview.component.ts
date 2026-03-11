@@ -5,11 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { BpmnDefinitionViewerComponent } from '../bpmn-definition-viewer/bpmn-definition-viewer.component';
 import { ProcessDefinition } from '../model/process-definition';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-process-definition-overview',
   standalone: true,
-  imports: [CommonModule, FormsModule, BpmnDefinitionViewerComponent],
+  imports: [CommonModule, FormsModule, BpmnDefinitionViewerComponent, TranslateModule],
   templateUrl: './process-definition-overview.component.html',
   styleUrl: './process-definition-overview.component.scss'
 })

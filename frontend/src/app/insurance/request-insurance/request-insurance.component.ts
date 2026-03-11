@@ -2,13 +2,15 @@ import {Component, inject} from '@angular/core';
 import {RequestHouseholdComponent} from "../request-household/request-household.component";
 import {ActivatedRoute} from "@angular/router";
 import {RequestLiabilityComponent} from "../request-liability/request-liability.component";
+import {TranslateModule} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-request-insurance',
   standalone: true,
   imports: [
     RequestHouseholdComponent,
-    RequestLiabilityComponent
+    RequestLiabilityComponent,
+    TranslateModule
   ],
   templateUrl: './request-insurance.component.html',
   styleUrl: './request-insurance.component.scss'

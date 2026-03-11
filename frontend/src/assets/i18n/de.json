@@ -325,6 +325,22 @@
     "RUNNING": "Laufende Instanzen",
     "LINK": "Link"
   },
+  "PROCESS_DEF": {
+    "TITLE": "Prozessdefinitions-Übersicht",
+    "SUBTITLE": "Prozessdefinitionen",
+    "LOADING": "Wird geladen...",
+    "TENANT": "Mandant",
+    "RUNNING": "Laufend",
+    "EMPTY_STATE": "Wählen Sie eine Prozessdefinition aus, um alle laufenden Instanzen anzuzeigen"
+  },
+  "ADMIN": {
+    "SECTION": "Administration",
+    "USERS": "Benutzerverwaltung",
+    "ROLE": "Rolle",
+    "SAVE_ROLE": "Speichern",
+    "ROLE_UPDATED": "Rolle aktualisiert",
+    "ROLE_UPDATE_ERROR": "Aktualisierung fehlgeschlagen"
+  },
   "HOME": {
     "TITLE": "BPMN",
     "INTRO": "BPMN -> Business Process Modeling Notation",

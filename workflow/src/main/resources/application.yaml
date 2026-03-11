@@ -41,36 +41,6 @@ app:
   base-url: http://localhost:8080
   frontend-url: http://localhost:4200
 
-#camunda:
-#  client:
-#    mode: oidc
-#    auth:
-#      oidc-type: keycloak
-#      issuer: http://localhost:18080/auth/realms/camunda-platform
-#      client-id: zeebe
-#      client-secret: zecret
-#    zeebe:
-#      enabled: true
-#      base-url: http://localhost:26500
-#      defaults:
-#        enabled: false
-#    operate:
-#      enabled: true
-#      base-url: http://localhost:8081
-#    tasklist:
-#      enabled: false
-#    optimize:
-#      enabled: false
-#    identity:
-#      enabled: false
-
-#vanillabp:
-#  workflow-modules:
-#    insurance:
-#      adapters:
-#        camunda8:
-#          resources-location: classpath*:/processes8
-
 logging:
   level:
     # io.camunda.zeebe.client.impl.ZeebeCallCredentials: ERROR
@@ -88,3 +58,7 @@ cibseven:
 
 workflow-service:
   base-url: http://localhost:8080
+
+admin:
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
