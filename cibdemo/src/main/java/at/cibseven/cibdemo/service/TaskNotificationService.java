@@ -21,15 +21,18 @@ import java.util.Date;
 @Service
 public class TaskNotificationService implements TaskListener {
 
-    private static final String TASK_ENDPOINT = "http://localhost:8080/api/tasks";
+    private static final String TASK_ENDPOINT = "/api/tasks";
     private static final String API_KEY_HEADER = "X-API-Key";
 
     private final RestTemplate restTemplate;
+    private final String workflowServiceUrl;
     private final String apiKey;
 
     public TaskNotificationService(RestTemplate restTemplate,
+                                   @Value("${workflow-api.base-url:http://localhost:8080}") String workflowServiceUrl,
                                    @Value("${workflow-api.api-key:}") String apiKey) {
         this.restTemplate = restTemplate;
+        this.workflowServiceUrl = workflowServiceUrl;
         this.apiKey = apiKey;
     }
 
@@ -64,8 +67,8 @@ public class TaskNotificationService implements TaskListener {
 
             HttpEntity<TaskDto> request = new HttpEntity<>(task, headers);
 
-            log.info("Sending task notification for task: {} to {} with headers: {}", delegateTask.getName(), TASK_ENDPOINT, headers);
-            restTemplate.postForEntity(TASK_ENDPOINT, request, TaskDto.class);
+            log.info("Sending task notification for task: {} to {} with headers: {}", delegateTask.getName(), workflowServiceUrl + TASK_ENDPOINT, headers);
+            restTemplate.postForEntity(workflowServiceUrl + TASK_ENDPOINT, request, TaskDto.class);
             log.info("Task notification sent successfully for task: {}", delegateTask.getName());
 
         } catch (Exception e) {
@@ -82,8 +85,8 @@ public class TaskNotificationService implements TaskListener {
             taskUpdateRequest.setAssignee(delegateTask.getAssignee());
             HttpHeaders headers = createHeaders();
             HttpEntity<TaskUpdateRequest> request = new HttpEntity<>(taskUpdateRequest, headers);
-            log.info("Sending task update notification for task: {} to {}", delegateTask.getName(), TASK_ENDPOINT);
-            restTemplate.put(TASK_ENDPOINT + "/" + taskUpdateRequest.getTaskId(), request);
+            log.info("Sending task update notification for task: {} to {}", delegateTask.getName(), workflowServiceUrl + TASK_ENDPOINT);
+            restTemplate.put( workflowServiceUrl + TASK_ENDPOINT + "/" + taskUpdateRequest.getTaskId(), request);
             log.info("Task update notification sent successfully for task: {}", delegateTask.getName());
         } catch (Exception e) {
             log.error("Failed to send task update notification for task: {}", delegateTask.getName(), e);
