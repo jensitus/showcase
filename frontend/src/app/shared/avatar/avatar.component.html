@@ -1,12 +1,12 @@
-<div class="avatar" [ngClass]="[sizeClass, shapeClass]">
-    <img *ngIf="displayUrl && !showInitials"
-         [src]="displayUrl"
-         [alt]="username || 'User avatar'"
-         class="avatar-img"
-         (error)="onImageError()">
-    <div *ngIf="!displayUrl || showInitials"
-         class="avatar-initials"
-         [style.background]="backgroundColor">
-        {{ initials }}
-    </div>
+<div [class]="cssClasses()">
+    @if (displayUrl() && !showInitials()) {
+        <img [src]="displayUrl()"
+             [alt]="username() || 'User avatar'"
+             class="avatar-img"
+             (error)="onImageError()">
+    } @else {
+        <div class="avatar-initials" [style.background]="backgroundColor()">
+            {{ initials() }}
+        </div>
+    }
 </div>
