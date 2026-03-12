@@ -258,6 +258,11 @@ class UserServiceTest {
         }
 
         @Override
+        public boolean existsByRole(String role) {
+            return false;
+        }
+
+        @Override
         public <S extends User> S save(S entity) {
             this.savedUser = entity;
             return entity;
