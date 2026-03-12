@@ -6,17 +6,7 @@
       <i class="bi bi-card-checklist"></i>&nbsp;
       <span>{{ 'NAV.TASKS' | translate }}</span>
     </a>
-    <a [routerLink]="['/workflow-list']" [routerLinkActive]="['router-link-active']" class="list-group-item"
-       [attr.data-label]="'NAV.WORKFLOWS' | translate">
-      <i class="bi bi-diagram-3"></i>&nbsp;
-      <span>{{ 'NAV.WORKFLOWS' | translate }}</span>
-    </a>
 
-    <a [routerLink]="['/customers']" [routerLinkActive]="['router-link-active']" class="list-group-item"
-       [attr.data-label]="'NAV.CUSTOMERS' | translate">
-      <i class="bi bi-people"></i>&nbsp;
-      <span>{{ 'NAV.CUSTOMERS' | translate }}</span>
-    </a>
     @if (isAdmin()) {
       <div class="list-group-item list-group-item-dark small text-uppercase fw-bold py-1 px-3 mt-2" style="pointer-events: none;">
         <i class="bi bi-shield-lock"></i>&nbsp;
@@ -32,6 +22,18 @@
         <i class="bi bi-people-fill"></i>&nbsp;
         <span>{{ 'ADMIN.USERS' | translate }}</span>
       </a>
+
+        <a [routerLink]="['/workflow-list']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+           [attr.data-label]="'NAV.WORKFLOWS' | translate">
+            <i class="bi bi-diagram-3"></i>&nbsp;
+            <span>{{ 'NAV.WORKFLOWS' | translate }}</span>
+        </a>
+
+        <a [routerLink]="['/customers']" [routerLinkActive]="['router-link-active']" class="list-group-item"
+           [attr.data-label]="'NAV.CUSTOMERS' | translate">
+            <i class="bi bi-people"></i>&nbsp;
+            <span>{{ 'NAV.CUSTOMERS' | translate }}</span>
+        </a>
     }
       @if (!isLoggedIn()) {
           <a [routerLink]="['/login']" [routerLinkActive]="['router-link-active']" class="list-group-item"
