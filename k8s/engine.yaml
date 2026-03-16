@@ -39,6 +39,11 @@ spec:
                 secretKeyRef:
                   name: insurance-secrets
                   key: workflow-api-key
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-secrets
+                  key: jwt-secret
             - name: CAMUNDA_BPM_ADMIN_USER_PASSWORD
               valueFrom:
                 secretKeyRef:

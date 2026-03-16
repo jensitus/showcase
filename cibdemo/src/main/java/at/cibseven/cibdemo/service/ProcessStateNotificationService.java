@@ -1,5 +1,6 @@
 package at.cibseven.cibdemo.service;
 
+import at.cibseven.cibdemo.config.ApiKeyProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
@@ -24,15 +25,15 @@ public class ProcessStateNotificationService implements ExecutionListener {
 
     private final RestTemplate restTemplate;
     private final String workflowServiceUrl;
-    private final String apiKey;
+    private final ApiKeyProvider apiKeyProvider;
 
     public ProcessStateNotificationService(
             RestTemplate restTemplate,
             @Value("${workflow-api.base-url:http://localhost:8080}") String workflowServiceUrl,
-            @Value("${workflow-api.api-key:}") String apiKey) {
+            ApiKeyProvider apiKeyProvider) {
         this.restTemplate = restTemplate;
         this.workflowServiceUrl = workflowServiceUrl;
-        this.apiKey = apiKey;
+        this.apiKeyProvider = apiKeyProvider;
     }
 
     @Override
@@ -54,7 +55,8 @@ public class ProcessStateNotificationService implements ExecutionListener {
             String url = workflowServiceUrl + "/api/process-instances/" + processInstanceId + "/state";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            if (apiKey != null && !apiKey.isBlank()) {
+            String apiKey = apiKeyProvider.getApiKey();
+            if (!apiKey.isBlank()) {
                 headers.set(API_KEY_HEADER, apiKey);
             }
             restTemplate.postForEntity(url, new HttpEntity<>(Map.of("state", state), headers), Void.class);

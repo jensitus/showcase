@@ -1,5 +1,6 @@
 package at.cibseven.cibdemo.service;
 
+import at.cibseven.cibdemo.config.ApiKeyProvider;
 import at.cibseven.cibdemo.dto.TaskUpdateRequest;
 import at.cibseven.cibdemo.dto.TaskDto;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +27,14 @@ public class TaskNotificationService implements TaskListener {
 
     private final RestTemplate restTemplate;
     private final String workflowServiceUrl;
-    private final String apiKey;
+    private final ApiKeyProvider apiKeyProvider;
 
     public TaskNotificationService(RestTemplate restTemplate,
                                    @Value("${workflow-api.base-url:http://localhost:8080}") String workflowServiceUrl,
-                                   @Value("${workflow-api.api-key:}") String apiKey) {
+                                   ApiKeyProvider apiKeyProvider) {
         this.restTemplate = restTemplate;
         this.workflowServiceUrl = workflowServiceUrl;
-        this.apiKey = apiKey;
+        this.apiKeyProvider = apiKeyProvider;
     }
 
     @Override
@@ -96,7 +97,8 @@ public class TaskNotificationService implements TaskListener {
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        if (apiKey != null && !apiKey.isEmpty()) {
+        String apiKey = apiKeyProvider.getApiKey();
+        if (!apiKey.isBlank()) {
             headers.set(API_KEY_HEADER, apiKey);
         }
         return headers;

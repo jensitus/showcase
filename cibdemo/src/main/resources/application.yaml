@@ -82,3 +82,6 @@ workflow-api:
   base-url: ${WORKFLOW_API_BASE_URL:http://localhost:8080}
   api-key: ${WORKFLOW_API_API_KEY:}
 
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-must-be-at-least-256-bits-long-for-HS256-algorithm-please-change-this-in-production}
+
