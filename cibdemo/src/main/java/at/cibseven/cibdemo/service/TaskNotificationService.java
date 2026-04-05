@@ -4,8 +4,6 @@ import at.cibseven.cibdemo.config.ApiKeyProvider;
 import at.cibseven.cibdemo.dto.TaskUpdateRequest;
 import at.cibseven.cibdemo.dto.TaskDto;
 import lombok.extern.slf4j.Slf4j;
-import org.cibseven.bpm.engine.delegate.DelegateTask;
-import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,13 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-
 @Slf4j
 @Service
-public class TaskNotificationService implements TaskListener {
+public class TaskNotificationService {
 
     private static final String TASK_ENDPOINT = "/api/tasks";
     private static final String API_KEY_HEADER = "X-API-Key";
@@ -37,60 +31,40 @@ public class TaskNotificationService implements TaskListener {
         this.apiKeyProvider = apiKeyProvider;
     }
 
-    @Override
-    public void notify(DelegateTask delegateTask) {
-        if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
-            log.info("Task CREATE event detected for task: {}", delegateTask.getName());
-           createTask(delegateTask);
-        }
-        if (TaskListener.EVENTNAME_COMPLETE.equals(delegateTask.getEventName())) {
-            log.info("Task COMPLETE event detected for task: {}", delegateTask.getName());
-            updateTask(delegateTask);
+    public void notifyFromSnapshot(TaskDto snapshot) {
+        if (TaskEntity.TaskState.STATE_CREATED.name().equals(snapshot.getTaskState())) {
+            log.info("Task CREATE event detected for task: {}", snapshot.getName());
+            createTask(snapshot);
+        } else if (TaskEntity.TaskState.STATE_COMPLETED.name().equals(snapshot.getTaskState())) {
+            log.info("Task COMPLETE event detected for task: {}", snapshot.getName());
+            updateTask(snapshot);
         }
     }
 
-    private void createTask(DelegateTask delegateTask) {
+    private void createTask(TaskDto task) {
         try {
-            TaskDto task = new TaskDto();
-            task.setTaskId(delegateTask.getId());
-            task.setName(delegateTask.getName());
-            task.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
-            task.setProcessInstanceId(delegateTask.getProcessInstanceId());
-            task.setProcessDefinitionId(delegateTask.getProcessDefinitionId());
-            task.setAssignee(delegateTask.getAssignee());
-            task.setCreated(convertToLocalDateTime(delegateTask.getCreateTime()));
-            task.setExecutionId(delegateTask.getExecutionId());
-            task.setTenantId(delegateTask.getTenantId());
-            task.setTaskState(TaskEntity.TaskState.STATE_CREATED.name());
-            task.setVariables(delegateTask.getVariables());
-
-            HttpHeaders headers = createHeaders();
-
-            HttpEntity<TaskDto> request = new HttpEntity<>(task, headers);
-
-            log.info("Sending task notification for task: {} to {} with headers: {}", delegateTask.getName(), workflowServiceUrl + TASK_ENDPOINT, headers);
+            HttpEntity<TaskDto> request = new HttpEntity<>(task, createHeaders());
+            log.info("Sending task notification for task: {} to {}", task.getName(), workflowServiceUrl + TASK_ENDPOINT);
             restTemplate.postForEntity(workflowServiceUrl + TASK_ENDPOINT, request, TaskDto.class);
-            log.info("Task notification sent successfully for task: {}", delegateTask.getName());
-
+            log.info("Task notification sent successfully for task: {}", task.getName());
         } catch (Exception e) {
-            log.error("Failed to send task notification for task: {}", delegateTask.getName(), e);
+            log.error("Failed to send task notification for task: {}", task.getName(), e);
         }
     }
 
-    private void updateTask(DelegateTask delegateTask) {
+    private void updateTask(TaskDto snapshot) {
         try {
             TaskUpdateRequest taskUpdateRequest = new TaskUpdateRequest();
-            taskUpdateRequest.setTaskId(delegateTask.getId());
-            taskUpdateRequest.setTaskState(TaskEntity.TaskState.STATE_COMPLETED.name());
-            taskUpdateRequest.setName(delegateTask.getName());
-            taskUpdateRequest.setAssignee(delegateTask.getAssignee());
-            HttpHeaders headers = createHeaders();
-            HttpEntity<TaskUpdateRequest> request = new HttpEntity<>(taskUpdateRequest, headers);
-            log.info("Sending task update notification for task: {} to {}", delegateTask.getName(), workflowServiceUrl + TASK_ENDPOINT);
-            restTemplate.put( workflowServiceUrl + TASK_ENDPOINT + "/" + taskUpdateRequest.getTaskId(), request);
-            log.info("Task update notification sent successfully for task: {}", delegateTask.getName());
+            taskUpdateRequest.setTaskId(snapshot.getTaskId());
+            taskUpdateRequest.setTaskState(snapshot.getTaskState());
+            taskUpdateRequest.setName(snapshot.getName());
+            taskUpdateRequest.setAssignee(snapshot.getAssignee());
+            HttpEntity<TaskUpdateRequest> request = new HttpEntity<>(taskUpdateRequest, createHeaders());
+            log.info("Sending task update notification for task: {} to {}", snapshot.getName(), workflowServiceUrl + TASK_ENDPOINT);
+            restTemplate.put(workflowServiceUrl + TASK_ENDPOINT + "/" + taskUpdateRequest.getTaskId(), request);
+            log.info("Task update notification sent successfully for task: {}", snapshot.getName());
         } catch (Exception e) {
-            log.error("Failed to send task update notification for task: {}", delegateTask.getName(), e);
+            log.error("Failed to send task update notification for task: {}", snapshot.getName(), e);
         }
     }
 
@@ -102,9 +76,5 @@ public class TaskNotificationService implements TaskListener {
             headers.set(API_KEY_HEADER, apiKey);
         }
         return headers;
-    }
-
-    private LocalDateTime convertToLocalDateTime(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

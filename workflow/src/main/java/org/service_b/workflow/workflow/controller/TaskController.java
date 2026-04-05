@@ -2,12 +2,15 @@ package org.service_b.workflow.workflow.controller;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.workflow.dto.CompleteTaskDto;
 import org.service_b.workflow.workflow.dto.CreateTaskRequest;
 import org.service_b.workflow.workflow.dto.TaskDto;
 import org.service_b.workflow.workflow.dto.TaskUpdateRequest;
 import org.service_b.workflow.workflow.persistence.entity.TaskEntity;
+import org.service_b.workflow.workflow.rest.CibSevenRestClient;
 import org.service_b.workflow.workflow.service.TaskService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,14 +28,35 @@ import java.util.UUID;
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class TaskController {
 
     private final TaskService taskService;
+    private final CibSevenRestClient cibSevenRestClient;
+
+    @Value("${showcase.simulate-task-failure:false}")
+    private boolean simulateTaskFailure;
 
     @PostMapping
     public ResponseEntity<TaskDto> createTask(@RequestBody CreateTaskRequest request) {
-        TaskDto createdTask = taskService.createTask(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+        try {
+            TaskDto createdTask = taskService.createTask(request);
+            if (simulateTaskFailure) {
+                throw new IllegalStateException("Simulated task creation failure (showcase.simulate-task-failure=true)");
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+        } catch (Exception e) {
+            log.error("Failed to create task {} (executionId={}): {}",
+                      request.getTaskId(), request.getExecutionId(), e.getMessage(), e);
+            if (request.getProcessInstanceId() != null) {
+                cibSevenRestClient.createIncident(
+                        request.getProcessInstanceId(),
+                        "taskCreationFailed",
+                        "Workflow service failed to create task: " + e.getMessage()
+                );
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/{task_id}")

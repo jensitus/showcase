@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="bpmn.io modeler"
+                  exporterVersion="1.0">
+
+  <bpmn:process id="abstract_submission_lifecycle" name="Abstract Submission Lifecycle" isExecutable="true">
+
+    <bpmn:startEvent id="StartEvent_Submit" name="Abstract Submitted">
+      <bpmn:outgoing>Flow_Submit_Review</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_ReviewAbstract" name="Review Abstract">
+      <bpmn:incoming>Flow_Submit_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Decision" name="Decision">
+      <bpmn:incoming>Flow_Review_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Decision_Accept</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decision_Reject</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decision_Revise</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_ReviseAbstract" name="Revise Abstract">
+      <bpmn:incoming>Flow_Decision_Revise</bpmn:incoming>
+      <bpmn:outgoing>Flow_Revise_Review</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="EndEvent_Accepted" name="Abstract Accepted">
+      <bpmn:incoming>Flow_Decision_Accept</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="EndEvent_Rejected" name="Abstract Rejected">
+      <bpmn:incoming>Flow_Decision_Reject</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_Submit_Review" sourceRef="StartEvent_Submit" targetRef="Task_ReviewAbstract"/>
+    <bpmn:sequenceFlow id="Flow_Review_Decision" sourceRef="Task_ReviewAbstract" targetRef="Gateway_Decision"/>
+    <bpmn:sequenceFlow id="Flow_Decision_Accept" name="accepted" sourceRef="Gateway_Decision" targetRef="EndEvent_Accepted"/>
+    <bpmn:sequenceFlow id="Flow_Decision_Reject" name="rejected" sourceRef="Gateway_Decision" targetRef="EndEvent_Rejected"/>
+    <bpmn:sequenceFlow id="Flow_Decision_Revise" name="revision needed" sourceRef="Gateway_Decision" targetRef="Task_ReviseAbstract"/>
+    <bpmn:sequenceFlow id="Flow_Revise_Review" sourceRef="Task_ReviseAbstract" targetRef="Task_ReviewAbstract"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="abstract_submission_lifecycle">
+
+      <bpmndi:BPMNShape id="StartEvent_Submit_di" bpmnElement="StartEvent_Submit">
+        <dc:Bounds x="152" y="172" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="128" y="215" width="86" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviewAbstract_di" bpmnElement="Task_ReviewAbstract">
+        <dc:Bounds x="240" y="150" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_Decision_di" bpmnElement="Gateway_Decision" isMarkerVisible="true">
+        <dc:Bounds x="395" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="393" y="135" width="54" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviseAbstract_di" bpmnElement="Task_ReviseAbstract">
+        <dc:Bounds x="370" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="EndEvent_Accepted_di" bpmnElement="EndEvent_Accepted">
+        <dc:Bounds x="542" y="112" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="518" y="155" width="86" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
+        <dc:Bounds x="542" y="232" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="519" y="275" width="83" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_Submit_Review_di" bpmnElement="Flow_Submit_Review">
+        <di:waypoint x="188" y="190"/><di:waypoint x="240" y="190"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Review_Decision_di" bpmnElement="Flow_Review_Decision">
+        <di:waypoint x="340" y="190"/><di:waypoint x="395" y="190"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Decision_Accept_di" bpmnElement="Flow_Decision_Accept">
+        <di:waypoint x="420" y="165"/><di:waypoint x="420" y="130"/><di:waypoint x="542" y="130"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="449" y="112" width="46" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Decision_Reject_di" bpmnElement="Flow_Decision_Reject">
+        <di:waypoint x="420" y="215"/><di:waypoint x="420" y="250"/><di:waypoint x="542" y="250"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="449" y="230" width="40" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Decision_Revise_di" bpmnElement="Flow_Decision_Revise">
+        <di:waypoint x="420" y="215"/><di:waypoint x="420" y="280"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="426" y="244" width="78" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Revise_Review_di" bpmnElement="Flow_Revise_Review">
+        <di:waypoint x="370" y="320"/><di:waypoint x="290" y="320"/><di:waypoint x="290" y="230"/>
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

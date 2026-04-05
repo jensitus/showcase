@@ -33,13 +33,14 @@ public class TaskService {
     private final ProcessMapper processMapper;
     private final VariableRepository variableRepository;
     private final InsuranceWorkflowService insuranceWorkflowService;
+    private final SubmissionWorkflowService submissionWorkflowService;
     private final RestClientService restClientService;
     private final EventService eventService;
 
     @Transactional
     public TaskDto createTask(CreateTaskRequest request) {
         TaskEntity entity = taskMapper.toEntity(request);
-        ProcessDto processDto = processService.getProcessByProcessInstanceId(request.getProcessInstanceId());
+        ProcessDto processDto = resolveProcessDto(request);
 
         updateOrCreateVariables(entity, request.getVariables(), processDto);
 
@@ -48,6 +49,8 @@ public class TaskService {
 
         processService.findInsuranceByProcessInstanceId(request.getProcessInstanceId())
                       .ifPresent(insurance -> eventService.sendEvent(insurance, "insurance"));
+        processService.findSubmissionByProcessInstanceId(request.getProcessInstanceId())
+                      .ifPresent(submission -> eventService.sendEvent(submission, "submission"));
 
         TaskDto enrichedTaskDto = enrichTaskWithWorkflowData(taskDto, request);
 
@@ -205,6 +208,10 @@ public class TaskService {
     private void updateOrCreateVariables(TaskEntity entity,
                                          Map<String, Object> variables,
                                          ProcessDto processDto) {
+        if (processDto == null) {
+            log.warn("ProcessDto is null for task {}, skipping variable persistence", entity.getTaskId());
+            return;
+        }
         variables.forEach((key, value) -> {
             log.debug("Processing variable - Key: {}, Value: {}", key, value);
 
@@ -239,21 +246,79 @@ public class TaskService {
     }
 
     private TaskDto enrichTaskWithWorkflowData(TaskDto taskDto, CreateTaskRequest request) {
+        String taskKey = taskDto.getTaskDefinitionKey();
+
+        // CFP / submission tasks — identified by submissionId variable
+        UUID submissionId = extractSubmissionId(request.getVariables());
+        if (submissionId != null) {
+            return switch (taskKey) {
+                case "ut_receive_submission" -> handleReceiveSubmission(submissionId, request, taskDto);
+                default -> {
+                    log.debug("No workflow enrichment needed for submission task: {}", taskKey);
+                    yield null;
+                }
+            };
+        }
+
+        // Insurance tasks — identified by customerId variable
         UUID customerId = extractCustomerId(request.getVariables());
         if (customerId == null) {
-            log.warn("No customerId found in variables for task: {}", taskDto.getTaskDefinitionKey());
+            log.warn("No customerId or submissionId found in variables for task: {}", taskKey);
             return null;
         }
 
-        return switch (taskDto.getTaskDefinitionKey()) {
+        return switch (taskKey) {
             case "ut_manual_creditworthiness_check" -> handleCreditworthinessCheck(customerId, request, taskDto);
             case "ut_manual_liability_check" -> handleLiabilityCheck(customerId, request, taskDto);
             case "ut_manual_household_check" -> handleRiskAssessment(customerId, request, taskDto);
             default -> {
-                log.debug("No workflow enrichment needed for task: {}", taskDto.getTaskDefinitionKey());
+                log.debug("No workflow enrichment needed for task: {}", taskKey);
                 yield null;
             }
         };
+    }
+
+    private TaskDto handleReceiveSubmission(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        return submissionWorkflowService.receiveSubmission(submissionId, initiator, taskDto);
+    }
+
+    /**
+     * Resolves the ProcessDto for an incoming task callback. For submission (CFP) tasks CIB Seven
+     * may call back before our code has had a chance to store the processInstanceId (race condition
+     * between the HTTP response and the task-creation listener). In that case we locate the
+     * pre-created ProcessEntity via submissionId and update it with the real processInstanceId.
+     */
+    private ProcessDto resolveProcessDto(CreateTaskRequest request) {
+        ProcessDto processDto = processService.getProcessByProcessInstanceId(request.getProcessInstanceId());
+        if (processDto != null) {
+            return processDto;
+        }
+
+        UUID submissionId = extractSubmissionId(request.getVariables());
+        if (submissionId != null) {
+            log.info("Process not yet found by instanceId {}, activating via submissionId {}",
+                     request.getProcessInstanceId(), submissionId);
+            processDto = processService.activateProcess(submissionId,
+                                                        request.getProcessInstanceId(),
+                                                        request.getProcessDefinitionId());
+            if (processDto != null) {
+                return processDto;
+            }
+        }
+
+        log.warn("Could not resolve ProcessEntity for processInstanceId={}", request.getProcessInstanceId());
+        return null;
+    }
+
+    private UUID extractSubmissionId(Map<String, Object> variables) {
+        try {
+            Object value = variables.get("submissionId");
+            return value != null ? UUID.fromString(value.toString()) : null;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid submissionId format", e);
+            return null;
+        }
     }
 
     private UUID extractCustomerId(Map<String, Object> variables) {
@@ -319,5 +384,6 @@ public class TaskService {
         Object value = variables.get(key);
         return value != null ? value.toString() : null;
     }
+
 
 }

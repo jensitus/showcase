@@ -2,7 +2,6 @@ package at.cibseven.cibdemo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
-import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -11,11 +10,9 @@ import org.cibseven.bpm.engine.impl.util.xml.Element;
 
 @Slf4j
 public class GlobalTaskListenerParseListener extends AbstractBpmnParseListener {
-    private final TaskListener taskListener;
     private final ExecutionListener processStateListener;
 
-    public GlobalTaskListenerParseListener(TaskListener taskListener, ExecutionListener processStateListener) {
-        this.taskListener = taskListener;
+    public GlobalTaskListenerParseListener(ExecutionListener processStateListener) {
         this.processStateListener = processStateListener;
         log.info("GlobalTaskListenerParseListener initialized");
     }

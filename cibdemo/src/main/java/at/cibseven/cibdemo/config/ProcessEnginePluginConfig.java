@@ -2,7 +2,6 @@ package at.cibseven.cibdemo.config;
 
 import at.cibseven.cibdemo.GlobalTaskListenerParseListener;
 import at.cibseven.cibdemo.service.ProcessStateNotificationService;
-import at.cibseven.cibdemo.service.TaskNotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParseListener;
 import org.cibseven.bpm.engine.impl.cfg.AbstractProcessEnginePlugin;
@@ -18,10 +17,8 @@ public class ProcessEnginePluginConfig extends AbstractProcessEnginePlugin {
 
     private final GlobalTaskListenerParseListener globalTaskListenerParseListener;
 
-    public ProcessEnginePluginConfig(TaskNotificationService taskNotificationService,
-                                     ProcessStateNotificationService processStateNotificationService) {
-        this.globalTaskListenerParseListener = new GlobalTaskListenerParseListener(
-                taskNotificationService, processStateNotificationService);
+    public ProcessEnginePluginConfig(ProcessStateNotificationService processStateNotificationService) {
+        this.globalTaskListenerParseListener = new GlobalTaskListenerParseListener(processStateNotificationService);
     }
 
     @Override

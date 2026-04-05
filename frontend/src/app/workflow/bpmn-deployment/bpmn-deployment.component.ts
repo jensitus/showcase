@@ -15,6 +15,11 @@ export class BpmnDeploymentComponent {
 
     deploymentName = signal('');
     tenantId = signal('insurance');
+
+    readonly tenants = [
+        { id: 'insurance', label: 'Insurance Showcase' },
+        { id: 'cfp',       label: 'Call for Papers (CFP)' },
+    ];
     selectedFile = signal<File | null>(null);
     status = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
     message = signal('');

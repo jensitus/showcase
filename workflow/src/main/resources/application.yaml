@@ -2,7 +2,7 @@ spring:
   profiles:
     active: dev
   application:
-    name: insurance
+    name: workflow-showcase
   liquibase:
     enabled: true
     change-log: classpath:/db/db.changelog-master.yaml
@@ -60,5 +60,10 @@ workflow-service:
   base-url: http://localhost:8080
 
 admin:
-  username: ${ADMIN_USERNAME}
-  password: ${ADMIN_PASSWORD}
+  username: ${ADMIN_USERNAME:}
+  password: ${ADMIN_PASSWORD:}
+
+showcase:
+  # Set to true to simulate a task creation failure (triggers CIB Seven incident).
+  # MUST be false in production.
+  simulate-task-failure: true

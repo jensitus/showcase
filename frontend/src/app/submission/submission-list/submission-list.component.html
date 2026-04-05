@@ -1,0 +1,92 @@
+<div class="container-fluid py-4">
+
+  <!-- Showcase intro banner -->
+  <div class="alert alert-success border-0 mb-4" role="alert">
+    <div class="d-flex align-items-start gap-3">
+      <i class="bi bi-journal-text fs-3 flex-shrink-0"></i>
+      <div>
+        <h5 class="alert-heading mb-1">{{ 'CFP.SHOWCASE_TITLE' | translate }}</h5>
+        <p class="mb-0">{{ 'CFP.SHOWCASE_INFO' | translate }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start process card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-play-circle me-2"></i>{{ 'CFP.START_TITLE' | translate }}</h5>
+    </div>
+    <div class="card-body">
+      <p class="mb-1">{{ 'CFP.START_INFO' | translate }}</p>
+      <p class="text-muted small mb-4">{{ 'CFP.START_DETAIL' | translate }}</p>
+      <div class="col-md-5">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h6 class="card-title">{{ 'CFP.ABSTRACT_LABEL' | translate }}</h6>
+            <p class="card-text text-muted small">{{ 'CFP.ABSTRACT_DESC' | translate }}</p>
+          </div>
+          <div class="card-footer bg-transparent border-0">
+            <button class="btn btn-primary btn-sm w-100" (click)="startSubmission()">
+              <i class="bi bi-send me-1"></i>{{ 'CFP.SUBMIT_BTN' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Running submissions -->
+  @if (loading()) {
+    <p class="text-muted">{{ 'SUBMISSION.LOADING' | translate }}</p>
+  } @else if (workflows().length > 0) {
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ 'CFP.ACTIVE_TITLE' | translate }}</h5>
+        <span class="badge bg-secondary">{{ workflows().length }}</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'CFP.BUSINESS_KEY' | translate }}</th>
+                <th>{{ 'CFP.PROCESS_ID' | translate }}</th>
+                <th>{{ 'CFP.STATUS' | translate }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (wf of workflows(); track wf.id) {
+                <tr [class.table-primary]="selectedProcessId() === wf.id">
+                  <td>{{ wf.businessKey }}</td>
+                  <td class="text-muted small font-monospace">{{ wf.id }}</td>
+                  <td><span class="badge bg-primary">{{ 'CFP.RUNNING' | translate }}</span></td>
+                  <td>
+                    <button class="badge bg-secondary border-0 text-white"
+                            (click)="selectProcess(selectedProcessId() === wf.id ? null : wf.id)">
+                      {{ 'PROFILE.VIEW_PROCESS' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BPMN viewer -->
+    <div class="bpmn-section">
+      <div class="mb-3">
+        <h5 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>{{ 'PROFILE.LIVE_DIAGRAM' | translate }}</h5>
+        <p class="text-muted small mb-0">{{ 'PROFILE.LIVE_DIAGRAM_INFO' | translate }}</p>
+      </div>
+      <app-bpmn-viewer
+        [workflowKey]="'abstract_submission_lifecycle'"
+        [tenantId]="'cfp'"
+        [processInstanceKeys]="displayedProcessInstanceIds()">
+      </app-bpmn-viewer>
+    </div>
+  }
+
+</div>
