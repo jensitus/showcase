@@ -82,6 +82,7 @@ jobs:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
+          command_timeout: 20m
           script: |
             set -e
             OWNER="${{ github.repository_owner }}"
@@ -106,7 +107,12 @@ jobs:
             kubectl rollout restart deployment/frontend -n insurance
 
             # Wait for rollout
-            kubectl rollout status deployment/backend -n insurance --timeout=600s
+            if ! kubectl rollout status deployment/backend -n insurance --timeout=600s; then
+              echo "=== Backend rollout failed — last pod logs ==="
+              kubectl logs -n insurance -l app=backend --tail=100 || true
+              kubectl describe pod -n insurance -l app=backend || true
+              exit 1
+            fi
             kubectl rollout status deployment/frontend -n insurance --timeout=120s
 
             echo "Deployment complete."
