@@ -9,6 +9,6 @@ RUN mvn -B package -DskipTests -q
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/insurance-*.jar app.jar
+COPY --from=build /app/target/workflow-showcase-*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
