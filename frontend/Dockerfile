@@ -9,5 +9,5 @@ RUN npm run build -- --configuration=production
 # Runtime stage
 FROM nginx:alpine
 COPY default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/insurance-showcase/ /usr/share/nginx/html
+COPY --from=build /app/dist/workflow-showcase/browser/ /usr/share/nginx/html
 EXPOSE 80
