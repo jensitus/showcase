@@ -14,9 +14,9 @@ spring:
           provider_disables_autocommit: true
     show-sql: false
   datasource:
-    url: jdbc:postgresql://localhost:5555/workflow
-    password: insurance
-    username: insurance
+    url: ${DB_URL:jdbc:postgresql://localhost:5555/workflow}
+    password: ${DB_PASSWORD:insurance}
+    username: ${DB_USERNAME:insurance}
     hikari:
       auto-commit: false
   mail:
@@ -34,12 +34,12 @@ spring:
             enable: true
 
 jwt:
-  secret: your-secret-key-must-be-at-least-256-bits-long-for-HS256-algorithm-please-change-this-in-production
+  secret: ${JWT_SECRET:your-secret-key-must-be-at-least-256-bits-long-for-HS256-algorithm-please-change-this-in-production}
   expiration: 86400000  # 24 hours in milliseconds
 
 app:
-  base-url: http://localhost:8080
-  frontend-url: http://localhost:4200
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:4200}
 
 logging:
   level:
@@ -48,16 +48,16 @@ logging:
     org.springframework.web.filter: DEBUG
     org.service_b.workflow.security.jwt: DEBUG
 
-workerId: test
+workerId: ${WORKER_ID:test}
 
 tasklist:
-  base-url: http://localhost:7001/engine-rest
+  base-url: ${CIBSEVEN_BASE_URL:http://localhost:7001/engine-rest}
 
 cibseven:
-  base-url: http://localhost:7001/engine-rest
+  base-url: ${CIBSEVEN_BASE_URL:http://localhost:7001/engine-rest}
 
 workflow-service:
-  base-url: http://localhost:8080
+  base-url: ${WORKFLOW_SERVICE_URL:http://localhost:8080}
 
 admin:
   username: ${ADMIN_USERNAME:}
@@ -66,4 +66,4 @@ admin:
 showcase:
   # Set to true to simulate a task creation failure (triggers CIB Seven incident).
   # MUST be false in production.
-  simulate-task-failure: true
+  simulate-task-failure: false

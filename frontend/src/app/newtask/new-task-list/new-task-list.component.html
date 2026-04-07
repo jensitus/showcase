@@ -6,22 +6,19 @@
         <!-- Task Filter Mode -->
         <div class="filter-mode-section">
             <div class="filter-buttons">
-                <button
-                    [class.active]="filterMode() === 'my-tasks'"
-                    (click)="onFilterModeChange('my-tasks')"
-                    [disabled]="loading()">
+                <button [class.active]="filterMode() === 'my-tasks'"
+                        (click)="onFilterModeChange('my-tasks')"
+                        [disabled]="loading()">
                     {{ 'TASKS.MY_TASKS' | translate }}
                 </button>
-                <button
-                    [class.active]="filterMode() === 'available'"
-                    (click)="onFilterModeChange('available')"
-                    [disabled]="loading()">
+                <button [class.active]="filterMode() === 'available'"
+                        (click)="onFilterModeChange('available')"
+                        [disabled]="loading()">
                     {{ 'TASKS.AVAILABLE' | translate }}
                 </button>
-                <button
-                    [class.active]="filterMode() === 'all'"
-                    (click)="onFilterModeChange('all')"
-                    [disabled]="loading()">
+                <button [class.active]="filterMode() === 'all'"
+                        (click)="onFilterModeChange('all')"
+                        [disabled]="loading()">
                     {{ 'TASKS.ALL' | translate }}
                 </button>
             </div>
@@ -30,12 +27,15 @@
         <!-- Tenant ID Filter -->
         <div class="filter-section">
             <label for="tenantId">{{ 'TASKS.TENANT_ID' | translate }}</label>
-            <input
-                    id="tenantId"
-                    type="text"
+            <select id="tenantId"
+                    class="form-select"
                     [value]="tenantId()"
-                    (input)="onTenantIdChange($any($event.target).value)"
-                    placeholder="Enter tenant ID">
+                    (change)="onTenantIdChange($any($event.target).value)"
+                    [disabled]="loading()">
+                @for (tenant of tenants; track tenant.id) {
+                    <option [value]="tenant.id" [selected]="tenant.id === tenantId()">{{ tenant.label }}</option>
+                }
+            </select>
             <button (click)="loadTasks()" [disabled]="loading()">
                 {{ loading() ? ('TASKS.LOADING' | translate) : ('TASKS.SEARCH' | translate) }}
             </button>
@@ -107,7 +107,7 @@
         <!-- Pagination Controls -->
         <div class="pagination-container">
             <div class="pagination-info">
-                {{ 'TASKS.SHOWING' | translate:{ from: startIndex(), to: endIndex(), total: totalElements() } }}
+                {{ 'TASKS.SHOWING' | translate:{from: startIndex(), to: endIndex(), total: totalElements()} }}
             </div>
 
             <div class="pagination-controls">
@@ -135,7 +135,7 @@
                     </button>
 
                     <span class="page-indicator">
-                        {{ 'TASKS.PAGE_OF' | translate:{ current: currentPage() + 1, total: totalPages() } }}
+                        {{ 'TASKS.PAGE_OF' | translate:{current: currentPage() + 1, total: totalPages()} }}
                     </span>
 
                     <button
@@ -177,7 +177,7 @@
                     <p>{{ 'TASKS.NO_AVAILABLE' | translate }}</p>
                 }
                 @case ('all') {
-                    <p>{{ 'TASKS.NO_ALL' | translate:{ tenant: tenantId() } }}</p>
+                    <p>{{ 'TASKS.NO_ALL' | translate:{tenant: tenantId()} }}</p>
                 }
             }
         </div>

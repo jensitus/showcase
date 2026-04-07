@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {NewTaskService} from "../new-task.service";
 import {TaskDto} from "../task.model";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {LoginService} from "../../auth/login.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -20,11 +20,17 @@ export class NewTaskListComponent implements OnInit {
 
     private newTaskService = inject(NewTaskService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
     private loginService = inject(LoginService);
+
+    tenants = [
+        { id: 'insurance', label: 'Insurance Showcase' },
+        { id: 'cfp',       label: 'Call for Papers (CFP)' }
+    ];
 
     // Signals for reactive state management
     tasks = signal<TaskDto[]>([]);
-    tenantId = signal<string>('');
+    tenantId = signal<string>('insurance');
     currentPage = signal<number>(0);
     pageSize = signal<number>(10);
     totalElements = signal<number>(0);
@@ -45,13 +51,13 @@ export class NewTaskListComponent implements OnInit {
     );
 
     ngOnInit(): void {
-        // Get current user
         const user = this.loginService.getLoggedInUserName();
         if (user) {
             this.currentUsername.set(user.username);
         }
-        // Set default tenant ID or get from route/service
-        this.tenantId.set('insurance');
+        const params = this.route.snapshot.queryParamMap;
+        this.tenantId.set(params.get('tenantId') ?? localStorage.getItem('task_list_tenant') ?? 'insurance');
+        this.filterMode.set((params.get('filterMode') as TaskFilterMode) ?? (localStorage.getItem('task_list_filter_mode') as TaskFilterMode) ?? 'my-tasks');
         this.loadTasks();
     }
 
@@ -126,14 +132,26 @@ export class NewTaskListComponent implements OnInit {
 
     onTenantIdChange(newTenantId: string): void {
         this.tenantId.set(newTenantId);
+        localStorage.setItem('task_list_tenant', newTenantId);
+        this.syncQueryParams();
         this.currentPage.set(0);
         this.loadTasks();
     }
 
     onFilterModeChange(mode: TaskFilterMode): void {
         this.filterMode.set(mode);
+        localStorage.setItem('task_list_filter_mode', mode);
+        this.syncQueryParams();
         this.currentPage.set(0);
         this.loadTasks();
+    }
+
+    private syncQueryParams(): void {
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { tenantId: this.tenantId(), filterMode: this.filterMode() },
+            replaceUrl: true
+        });
     }
 
     nextPage(): void {
