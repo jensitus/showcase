@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.insurance.persistence.InsuranceState;
 import org.service_b.workflow.insurance.service.InsuranceService;
+import org.service_b.workflow.submission.persistence.SubmissionState;
+import org.service_b.workflow.submission.service.SubmissionService;
 import org.service_b.workflow.workflow.service.ProcessService;
 import org.service_b.workflow.workflow.service.TaskService;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +22,19 @@ public class ProcessInstanceController {
 
     private final ProcessService processService;
     private final InsuranceService insuranceService;
+    private final SubmissionService submissionService;
     private final TaskService taskService;
 
     @GetMapping("/by-insurance/{insuranceId}")
     public ResponseEntity<Map<String, String>> getProcessInstanceIdByInsuranceId(@PathVariable UUID insuranceId) {
         return processService.findProcessInstanceIdByInsuranceId(insuranceId)
+                             .map(id -> ResponseEntity.ok(Map.of("processInstanceId", id)))
+                             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/by-submission/{submissionId}")
+    public ResponseEntity<Map<String, String>> getProcessInstanceIdBySubmissionId(@PathVariable UUID submissionId) {
+        return processService.findProcessInstanceIdBySubmissionId(submissionId)
                              .map(id -> ResponseEntity.ok(Map.of("processInstanceId", id)))
                              .orElse(ResponseEntity.notFound().build());
     }

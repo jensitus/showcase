@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.service_b.workflow.insurance.persistence.Insurance;
 import org.service_b.workflow.insurance.persistence.InsuranceRepository;
+import org.service_b.workflow.submission.persistence.Submission;
+import org.service_b.workflow.submission.persistence.SubmissionRepository;
 import org.service_b.workflow.workflow.domain.ResponsibleForType;
 import org.service_b.workflow.workflow.dto.ProcessDto;
 import org.service_b.workflow.workflow.dto.ProcessInstanceWithVariableDto;
@@ -24,6 +26,7 @@ public class ProcessService {
 
     private final ProcessRepository processRepository;
     private final InsuranceRepository insuranceRepository;
+    private final SubmissionRepository submissionRepository;
     private final VariableRepository variableRepository;
     private final ProcessMapper processMapper;
     private final ProcessableEntityValidator validator;
@@ -57,11 +60,44 @@ public class ProcessService {
                        .flatMap(e -> insuranceRepository.findById(e.getResponsibleForId()));
     }
 
+    public Optional<String> findProcessInstanceIdBySubmissionId(UUID submissionId) {
+        return processRepository.findByResponsibleForId(submissionId)
+                                .map(ProcessEntity::getProcessInstanceId);
+    }
+
+    public Optional<Submission> findSubmissionByProcessInstanceId(String processInstanceId) {
+        return Optional.ofNullable(processRepository.findByProcessInstanceId(processInstanceId))
+                       .filter(e -> e.getResponsibleForType() == ResponsibleForType.SUBMISSION)
+                       .flatMap(e -> submissionRepository.findById(e.getResponsibleForId()));
+    }
+
     public Processable getResponsibleEntity(ProcessEntity processEntity) {
         return switch (processEntity.getResponsibleForType()) {
             case INSURANCE -> insuranceRepository.findById(processEntity.getResponsibleForId()).orElseThrow();
+            case SUBMISSION -> submissionRepository.findById(processEntity.getResponsibleForId()).orElseThrow();
             case TODO, CLAIM, CONTRACT -> null;
         };
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public ProcessEntity preCreateProcess(Processable processable, String tenantId) {
+        validator.validateExists(processable.getType(), processable.getId());
+        ProcessEntity entity = new ProcessEntity();
+        entity.setTenantId(tenantId);
+        entity.setResponsibleForType(processable.getType());
+        entity.setResponsibleForId(processable.getId());
+        return processRepository.save(entity);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public ProcessDto activateProcess(UUID responsibleForId, String processInstanceId, String processDefinitionId) {
+        return processRepository.findByResponsibleForId(responsibleForId)
+                                .map(entity -> {
+                                    entity.setProcessInstanceId(processInstanceId);
+                                    entity.setProcessDefinitionId(processDefinitionId);
+                                    return processMapper.toDto(processRepository.save(entity));
+                                })
+                                .orElse(null);
     }
 
     private static ProcessEntity getProcessEntity(ProcessInstanceWithVariableDto processInstanceWithVariableDto, Processable processable) {

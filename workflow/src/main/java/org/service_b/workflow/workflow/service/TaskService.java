@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,13 +34,14 @@ public class TaskService {
     private final ProcessMapper processMapper;
     private final VariableRepository variableRepository;
     private final InsuranceWorkflowService insuranceWorkflowService;
+    private final SubmissionWorkflowService submissionWorkflowService;
     private final RestClientService restClientService;
     private final EventService eventService;
 
     @Transactional
     public TaskDto createTask(CreateTaskRequest request) {
         TaskEntity entity = taskMapper.toEntity(request);
-        ProcessDto processDto = processService.getProcessByProcessInstanceId(request.getProcessInstanceId());
+        ProcessDto processDto = resolveProcessDto(request);
 
         updateOrCreateVariables(entity, request.getVariables(), processDto);
 
@@ -48,6 +50,8 @@ public class TaskService {
 
         processService.findInsuranceByProcessInstanceId(request.getProcessInstanceId())
                       .ifPresent(insurance -> eventService.sendEvent(insurance, "insurance"));
+        processService.findSubmissionByProcessInstanceId(request.getProcessInstanceId())
+                      .ifPresent(submission -> eventService.sendEvent(submission, "submission"));
 
         TaskDto enrichedTaskDto = enrichTaskWithWorkflowData(taskDto, request);
 
@@ -176,8 +180,20 @@ public class TaskService {
     public void completeTask(String taskId, CompleteTaskDto completeTaskDto) {
         TaskEntity taskEntity = taskRepository.findByTaskId(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
         taskEntity.setTaskState("COMPLETED");
+        taskRepository.save(taskEntity);
 
-        restClientService.completeUserTask(taskId, completeTaskDto.getCompleteVars());
+        Map<String, Object> vars = completeTaskDto.getCompleteVars();
+        if ("ut_receive_submission".equals(taskEntity.getTaskDefinitionKey())) {
+            vars = submissionWorkflowService.mapReceiveSubmissionVars(vars);
+        } else if ("ut_score_abstract".equals(taskEntity.getTaskDefinitionKey())) {
+            vars = submissionWorkflowService.mapScoreAbstractVars(vars);
+        } else if ("ut_mock_registration".equals(taskEntity.getTaskDefinitionKey())) {
+            vars = coerceBooleanVar(vars, "author_registered");
+        } else if ("ut_mock_presenter".equals(taskEntity.getTaskDefinitionKey())) {
+            vars = coerceBooleanVar(vars, "presenter_shows_up");
+        }
+
+        restClientService.completeUserTask(taskId, vars);
     }
 
     private void validateTenantId(String tenantId) {
@@ -205,6 +221,10 @@ public class TaskService {
     private void updateOrCreateVariables(TaskEntity entity,
                                          Map<String, Object> variables,
                                          ProcessDto processDto) {
+        if (processDto == null) {
+            log.warn("ProcessDto is null for task {}, skipping variable persistence", entity.getTaskId());
+            return;
+        }
         variables.forEach((key, value) -> {
             log.debug("Processing variable - Key: {}, Value: {}", key, value);
 
@@ -239,21 +259,144 @@ public class TaskService {
     }
 
     private TaskDto enrichTaskWithWorkflowData(TaskDto taskDto, CreateTaskRequest request) {
+        String taskKey = taskDto.getTaskDefinitionKey();
+
+        // CFP / submission tasks — identified by submissionId variable
+        UUID submissionId = extractSubmissionId(request.getVariables());
+        if (submissionId != null) {
+            return switch (taskKey) {
+                case "ut_receive_submission" -> handleReceiveSubmission(submissionId, request, taskDto);
+                case "ut_assign_reviewers" -> handleAssignReviewers(submissionId, request, taskDto);
+                case "ut_score_abstract"   -> handleScoreAbstract(submissionId, request, taskDto);
+                case "ut_assign_format"        -> handleAssignFormat(submissionId, request, taskDto);
+                case "ut_upload-materials"      -> handleUploadMaterials(submissionId, request, taskDto);
+                case "ut_speaker_ready_room"    -> handleSpeakerReadyRoom(submissionId, request, taskDto);
+                case "ut_deliver_presentation"  -> handleDeliverPresentation(submissionId, request, taskDto);
+                case "ut_record_no_show"        -> handleRecordNoShow(submissionId, request, taskDto);
+                case "ut_mock_confirmation"     -> submissionWorkflowService.mockAuthorConfirmation(taskDto);
+                case "ut_mock_registration"     -> submissionWorkflowService.mockAuthorRegistration(taskDto);
+                case "ut_mock_presenter"        -> submissionWorkflowService.mockPresenterShowsUp(taskDto);
+                default -> {
+                    log.debug("No workflow enrichment needed for submission task: {}", taskKey);
+                    yield null;
+                }
+            };
+        }
+
+        // Insurance tasks — identified by customerId variable
         UUID customerId = extractCustomerId(request.getVariables());
         if (customerId == null) {
-            log.warn("No customerId found in variables for task: {}", taskDto.getTaskDefinitionKey());
+            log.warn("No customerId or submissionId found in variables for task: {}", taskKey);
             return null;
         }
 
-        return switch (taskDto.getTaskDefinitionKey()) {
+        return switch (taskKey) {
             case "ut_manual_creditworthiness_check" -> handleCreditworthinessCheck(customerId, request, taskDto);
             case "ut_manual_liability_check" -> handleLiabilityCheck(customerId, request, taskDto);
             case "ut_manual_household_check" -> handleRiskAssessment(customerId, request, taskDto);
             default -> {
-                log.debug("No workflow enrichment needed for task: {}", taskDto.getTaskDefinitionKey());
+                log.debug("No workflow enrichment needed for task: {}", taskKey);
                 yield null;
             }
         };
+    }
+
+    private TaskDto handleReceiveSubmission(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        return submissionWorkflowService.receiveSubmission(submissionId, initiator, taskDto);
+    }
+
+    private TaskDto handleAssignReviewers(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        return submissionWorkflowService.assignReviewers(submissionId, initiator, taskDto);
+    }
+
+    private TaskDto handleScoreAbstract(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        return submissionWorkflowService.scoreAbstract(submissionId, initiator, taskDto);
+    }
+
+    private TaskDto handleAssignFormat(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        return submissionWorkflowService.assignFormat(submissionId, initiator, taskDto);
+    }
+
+    private TaskDto handleUploadMaterials(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        Map<String, Object> vars = request.getVariables();
+        return submissionWorkflowService.uploadMaterials(submissionId, initiator, taskDto,
+                getStringValue(vars, "presentation_format"),
+                getStringValue(vars, "session_name"),
+                getStringValue(vars, "session_datetime"),
+                getStringValue(vars, "session_room"));
+    }
+
+    private TaskDto handleSpeakerReadyRoom(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        Map<String, Object> vars = request.getVariables();
+        return submissionWorkflowService.speakerReadyRoom(submissionId, initiator, taskDto,
+                getStringValue(vars, "presentation_format"),
+                getStringValue(vars, "session_name"),
+                getStringValue(vars, "session_datetime"),
+                getStringValue(vars, "session_room"));
+    }
+
+    private TaskDto handleDeliverPresentation(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        Map<String, Object> vars = request.getVariables();
+        return submissionWorkflowService.deliverPresentation(submissionId, initiator, taskDto,
+                getStringValue(vars, "presentation_format"),
+                getStringValue(vars, "session_name"),
+                getStringValue(vars, "session_datetime"),
+                getStringValue(vars, "session_room"));
+    }
+
+    private TaskDto handleRecordNoShow(UUID submissionId, CreateTaskRequest request, TaskDto taskDto) {
+        String initiator = getStringValue(request.getVariables(), "initiator");
+        Map<String, Object> vars = request.getVariables();
+        return submissionWorkflowService.recordNoShow(submissionId, initiator, taskDto,
+                getStringValue(vars, "presentation_format"),
+                getStringValue(vars, "session_name"),
+                getStringValue(vars, "session_datetime"),
+                getStringValue(vars, "session_room"));
+    }
+
+    /**
+     * Resolves the ProcessDto for an incoming task callback. For submission (CFP) tasks CIB Seven
+     * may call back before our code has had a chance to store the processInstanceId (race condition
+     * between the HTTP response and the task-creation listener). In that case we locate the
+     * pre-created ProcessEntity via submissionId and update it with the real processInstanceId.
+     */
+    private ProcessDto resolveProcessDto(CreateTaskRequest request) {
+        ProcessDto processDto = processService.getProcessByProcessInstanceId(request.getProcessInstanceId());
+        if (processDto != null) {
+            return processDto;
+        }
+
+        UUID submissionId = extractSubmissionId(request.getVariables());
+        if (submissionId != null) {
+            log.info("Process not yet found by instanceId {}, activating via submissionId {}",
+                     request.getProcessInstanceId(), submissionId);
+            processDto = processService.activateProcess(submissionId,
+                                                        request.getProcessInstanceId(),
+                                                        request.getProcessDefinitionId());
+            if (processDto != null) {
+                return processDto;
+            }
+        }
+
+        log.warn("Could not resolve ProcessEntity for processInstanceId={}", request.getProcessInstanceId());
+        return null;
+    }
+
+    private UUID extractSubmissionId(Map<String, Object> variables) {
+        try {
+            Object value = variables.get("submissionId");
+            return value != null ? UUID.fromString(value.toString()) : null;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid submissionId format", e);
+            return null;
+        }
     }
 
     private UUID extractCustomerId(Map<String, Object> variables) {
@@ -319,5 +462,12 @@ public class TaskService {
         Object value = variables.get(key);
         return value != null ? value.toString() : null;
     }
+
+    private Map<String, Object> coerceBooleanVar(Map<String, Object> vars, String key) {
+        Map<String, Object> mapped = new HashMap<>(vars);
+        mapped.put(key, Boolean.parseBoolean(String.valueOf(vars.get(key))));
+        return mapped;
+    }
+
 
 }

@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: submission-entity
+      author: jensitus
+      changes:
+        - createTable:
+            tableName: submission
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: submitted_at
+                  type: timestamp
+              - column:
+                  name: updated_at
+                  type: timestamp
+              - column:
+                  name: title
+                  type: varchar(512)
+              - column:
+                  name: authors
+                  type: varchar(1024)
+              - column:
+                  name: abstract_text
+                  type: varchar(8192)
+              - column:
+                  name: topic
+                  type: varchar(64)
+              - column:
+                  name: submitter_email
+                  type: varchar(255)
+              - column:
+                  name: submission_number
+                  type: int
+              - column:
+                  name: state
+                  type: varchar(64)
+              - column:
+                  name: reviewer_notes
+                  type: varchar(8192)

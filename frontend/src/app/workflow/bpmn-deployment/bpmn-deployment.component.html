@@ -19,7 +19,11 @@
 
       <div class="mb-3">
         <label class="form-label">{{ 'DEPLOY.TENANT' | translate }}</label>
-        <input type="text" class="form-control" [ngModel]="tenantId()" (ngModelChange)="tenantId.set($event)">
+        <select class="form-select" [ngModel]="tenantId()" (ngModelChange)="tenantId.set($event)">
+          @for (tenant of tenants; track tenant.id) {
+            <option [value]="tenant.id">{{ tenant.label }}</option>
+          }
+        </select>
       </div>
 
       <button class="btn btn-primary" (click)="deploy()"

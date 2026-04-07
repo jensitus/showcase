@@ -1,0 +1,792 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_AbstractLifecycle" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0">
+  <bpmn:process id="abstract_submission_lifecycle" name="Abstract Submission Lifecycle" isExecutable="true" camunda:historyTimeToLive="12345">
+    <bpmn:documentation>Complete lifecycle of scientific conference abstract submissions — from call for papers through final presentation. Covers free paper and invited speaker pathways, peer review, format assignment, author confirmation, registration gate, and presentation — with all exit paths (way-outs). Replace [n] placeholders with current counts for pipeline visibility.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_FreePaper" name="Call for Free Papers Opens">
+      <bpmn:outgoing>Flow_Start_FP</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_SubmissionValid" name="Submission Valid?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_Receive_to_Valid</bpmn:incoming>
+      <bpmn:outgoing>Flow_Valid_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Valid_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_InvitationAccepted" name="Invitation Accepted?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_Process_to_GW</bpmn:incoming>
+      <bpmn:outgoing>Flow_Inv_Accepted</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Inv_Declined</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_AcceptReject" name="Accept or Reject?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_Score_to_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Accept</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_MergeAccepted" name="" gatewayDirection="Converging">
+      <bpmn:incoming>Flow_Accept</bpmn:incoming>
+      <bpmn:incoming>Flow_Invited_to_Merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_Merge_to_Format</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_AuthorConfirms" name="Author Confirms Participation?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_1whghm6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirms</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Declines</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NoResponse</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_ResponseAfterReminder" name="Response After Reminder?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_Reminder_to_GW</bpmn:incoming>
+      <bpmn:outgoing>Flow_Response_Confirms</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Response_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_MergeConfirmed" name="" gatewayDirection="Converging">
+      <bpmn:incoming>Flow_Confirms</bpmn:incoming>
+      <bpmn:incoming>Flow_Response_Confirms</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirmed_to_Reg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_RegisteredByDeadline" name="Author Registered by Deadline?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_1q2mxua</bpmn:incoming>
+      <bpmn:outgoing>Flow_Registered_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Registered_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_RegAfterReminder" name="Registered After Reminder?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_0b1z83a</bpmn:incoming>
+      <bpmn:outgoing>Flow_RegAfter_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RegAfter_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_MergeRegistered" name="" gatewayDirection="Converging">
+      <bpmn:incoming>Flow_Registered_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_RegAfter_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reg_to_Upload</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_PresenterArrives" name="Presenter Shows Up?" gatewayDirection="Diverging">
+      <bpmn:incoming>Flow_1320jye</bpmn:incoming>
+      <bpmn:outgoing>Flow_Arrives_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Arrives_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Presented" name="Successfully Presented">
+      <bpmn:incoming>Flow_Present_to_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_InvalidSubmission" name="Submission Invalid">
+      <bpmn:incoming>Flow_Valid_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_InvitationDeclined" name="Invitation Declined">
+      <bpmn:incoming>Flow_Inv_Declined</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Rejected" name="Abstract Rejected">
+      <bpmn:incoming>Flow_Rejection_to_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_AuthorDeclined" name="Author Declined to Present">
+      <bpmn:incoming>Flow_Declines</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NoResponse" name="Author Unresponsive — Removed">
+      <bpmn:incoming>Flow_Response_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NotRegistered" name="Not Registered — Removed">
+      <bpmn:incoming>Flow_RegAfter_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NoShow" name="No-Show Recorded">
+      <bpmn:incoming>Flow_NoShow_to_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_FP" sourceRef="StartEvent_FreePaper" targetRef="Gateway_1kg5klm" />
+    <bpmn:sequenceFlow id="Flow_Receive_to_Valid" sourceRef="ut_receive_submission" targetRef="Gateway_SubmissionValid" />
+    <bpmn:sequenceFlow id="Flow_Valid_Yes" name="Valid" sourceRef="Gateway_SubmissionValid" targetRef="ut_assign_reviewers">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${submission_valid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Valid_No" name="Invalid" sourceRef="Gateway_SubmissionValid" targetRef="EndEvent_InvalidSubmission">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!submission_valid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Assign_to_Score" sourceRef="ut_assign_reviewers" targetRef="ut_score_abstract" />
+    <bpmn:sequenceFlow id="Flow_Score_to_Decision" sourceRef="ut_score_abstract" targetRef="Gateway_AcceptReject" />
+    <bpmn:sequenceFlow id="Flow_Accept" name="Accept" sourceRef="Gateway_AcceptReject" targetRef="Gateway_MergeAccepted">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${abstract_accepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Reject" name="Reject" sourceRef="Gateway_AcceptReject" targetRef="SendTask_NotifyRejection">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!abstract_accepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Rejection_to_End" sourceRef="SendTask_NotifyRejection" targetRef="EndEvent_Rejected" />
+    <bpmn:sequenceFlow id="Flow_Process_to_GW" sourceRef="ut_process_invitation" targetRef="Gateway_InvitationAccepted" />
+    <bpmn:sequenceFlow id="Flow_Inv_Accepted" name="Accepted" sourceRef="Gateway_InvitationAccepted" targetRef="ut_receive_invited_abstract">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${invitation_accepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Inv_Declined" name="Declined" sourceRef="Gateway_InvitationAccepted" targetRef="EndEvent_InvitationDeclined">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!invitation_accepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Invited_to_Merge" sourceRef="ut_receive_invited_abstract" targetRef="Gateway_MergeAccepted" />
+    <bpmn:sequenceFlow id="Flow_Merge_to_Format" sourceRef="Gateway_MergeAccepted" targetRef="ut_assign_format" />
+    <bpmn:sequenceFlow id="Flow_Format_to_Notify" sourceRef="ut_assign_format" targetRef="SendTask_NotifyAcceptance" />
+    <bpmn:sequenceFlow id="Flow_Notify_to_Confirm" sourceRef="SendTask_NotifyAcceptance" targetRef="ut_mock_confirmation" />
+    <bpmn:sequenceFlow id="Flow_Confirms" name="Confirms" sourceRef="Gateway_AuthorConfirms" targetRef="Gateway_MergeConfirmed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_confirmed == "yes"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Declines" name="Declines" sourceRef="Gateway_AuthorConfirms" targetRef="EndEvent_AuthorDeclined">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_confirmed == "declined"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NoResponse" name="No Response" sourceRef="Gateway_AuthorConfirms" targetRef="SendTask_SendConfirmReminder">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_confirmed == "pending"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Reminder_to_GW" sourceRef="SendTask_SendConfirmReminder" targetRef="Gateway_ResponseAfterReminder" />
+    <bpmn:sequenceFlow id="Flow_Response_Confirms" name="Confirms" sourceRef="Gateway_ResponseAfterReminder" targetRef="Gateway_MergeConfirmed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_confirmed}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Response_No" name="No Response" sourceRef="Gateway_ResponseAfterReminder" targetRef="EndEvent_NoResponse">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!author_confirmed}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Confirmed_to_Reg" sourceRef="Gateway_MergeConfirmed" targetRef="ut_mock_registration" />
+    <bpmn:sequenceFlow id="Flow_Registered_Yes" name="Registered" sourceRef="Gateway_RegisteredByDeadline" targetRef="Gateway_MergeRegistered">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_registered}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Registered_No" name="Not Registered" sourceRef="Gateway_RegisteredByDeadline" targetRef="SendTask_SendRegReminder">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!author_registered}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_RegReminder_to_GW" sourceRef="SendTask_SendRegReminder" targetRef="mock_registered" />
+    <bpmn:sequenceFlow id="Flow_RegAfter_Yes" name="Registered" sourceRef="Gateway_RegAfterReminder" targetRef="Gateway_MergeRegistered">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${author_registered}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_RegAfter_No" name="Not Registered" sourceRef="Gateway_RegAfterReminder" targetRef="EndEvent_NotRegistered">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!author_registered}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Reg_to_Upload" sourceRef="Gateway_MergeRegistered" targetRef="ut_upload-materials" />
+    <bpmn:sequenceFlow id="Flow_Upload_to_Ready" sourceRef="ut_upload-materials" targetRef="ut_speaker_ready_room" />
+    <bpmn:sequenceFlow id="Flow_Ready_to_Arrival" sourceRef="ut_speaker_ready_room" targetRef="ut_mock_presenter" />
+    <bpmn:sequenceFlow id="Flow_Arrives_Yes" name="Shows Up" sourceRef="Gateway_PresenterArrives" targetRef="ut_deliver_presentation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${presenter_shows_up}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Arrives_No" name="No-Show" sourceRef="Gateway_PresenterArrives" targetRef="ut_record_no_show">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!presenter_shows_up}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Present_to_End" sourceRef="ut_deliver_presentation" targetRef="EndEvent_Presented" />
+    <bpmn:sequenceFlow id="Flow_NoShow_to_End" sourceRef="ut_record_no_show" targetRef="EndEvent_NoShow" />
+    <bpmn:sendTask id="SendTask_NotifyAcceptance" name="Notify Author of Acceptance &#38; Format" camunda:type="external" camunda:topic="notify_author_acceptance">
+      <bpmn:incoming>Flow_Format_to_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_to_Confirm</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="ut_receive_submission" name="Receive &#38; Validate Abstract Submission">
+      <bpmn:incoming>Flow_1uupmbk</bpmn:incoming>
+      <bpmn:outgoing>Flow_Receive_to_Valid</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_process_invitation" name="Process Speaker Invitation">
+      <bpmn:incoming>Flow_0nnw8gb</bpmn:incoming>
+      <bpmn:outgoing>Flow_Process_to_GW</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_receive_invited_abstract" name="Receive Invited Speaker Abstract">
+      <bpmn:incoming>Flow_Inv_Accepted</bpmn:incoming>
+      <bpmn:outgoing>Flow_Invited_to_Merge</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_assign_reviewers" name="Assign Reviewers (3–4 per Abstract)">
+      <bpmn:incoming>Flow_Valid_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Assign_to_Score</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_score_abstract" name="Score Abstracts (Blind Review)">
+      <bpmn:incoming>Flow_Assign_to_Score</bpmn:incoming>
+      <bpmn:outgoing>Flow_Score_to_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="SendTask_NotifyRejection" name="Notify Author of Rejection" camunda:type="external" camunda:topic="notify_author_rejection">
+      <bpmn:incoming>Flow_Reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_Rejection_to_End</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="ut_assign_format" name="Assign Presentation Format">
+      <bpmn:incoming>Flow_Merge_to_Format</bpmn:incoming>
+      <bpmn:outgoing>Flow_Format_to_Notify</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="SendTask_SendConfirmReminder" name="Send Confirmation Reminder" camunda:type="external" camunda:topic="send_confirmation_reminder">
+      <bpmn:incoming>Flow_NoResponse</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reminder_to_GW</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="SendTask_SendRegReminder" name="Send Registration Reminder" camunda:type="external" camunda:topic="send_registration_reminder">
+      <bpmn:incoming>Flow_Registered_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_RegReminder_to_GW</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="ut_upload-materials" name="Upload Presentation Materials">
+      <bpmn:incoming>Flow_Reg_to_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Upload_to_Ready</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_speaker_ready_room" name="Speaker Ready Room Check">
+      <bpmn:incoming>Flow_Upload_to_Ready</bpmn:incoming>
+      <bpmn:outgoing>Flow_Ready_to_Arrival</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_deliver_presentation" name="Deliver Presentation">
+      <bpmn:incoming>Flow_Arrives_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Present_to_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_record_no_show" name="Record No-Show &#38; Apply Sanctions">
+      <bpmn:incoming>Flow_Arrives_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_NoShow_to_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1uupmbk" sourceRef="Gateway_1kg5klm" targetRef="ut_receive_submission">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${call_for_papers}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0nnw8gb" sourceRef="Gateway_1kg5klm" targetRef="ut_process_invitation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!call_for_papers}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_1kg5klm" name="Speaker invited or not?">
+      <bpmn:incoming>Flow_Start_FP</bpmn:incoming>
+      <bpmn:outgoing>Flow_1uupmbk</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0nnw8gb</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1whghm6" sourceRef="ut_mock_confirmation" targetRef="Gateway_AuthorConfirms" />
+    <bpmn:sequenceFlow id="Flow_1q2mxua" sourceRef="ut_mock_registration" targetRef="Gateway_RegisteredByDeadline" />
+    <bpmn:sequenceFlow id="Flow_1320jye" sourceRef="ut_mock_presenter" targetRef="Gateway_PresenterArrives" />
+    <bpmn:sequenceFlow id="Flow_0b1z83a" sourceRef="mock_registered" targetRef="Gateway_RegAfterReminder" />
+    <bpmn:scriptTask id="mock_registered" name="Mock Registered" scriptFormat="juel">
+      <bpmn:incoming>Flow_RegReminder_to_GW</bpmn:incoming>
+      <bpmn:outgoing>Flow_0b1z83a</bpmn:outgoing>
+      <bpmn:script>${execution.setVariable('author_registered', false)}</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="ut_mock_confirmation" name="Mock Confirmation">
+      <bpmn:incoming>Flow_Notify_to_Confirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_1whghm6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_mock_registration" name="Mock Registration">
+      <bpmn:incoming>Flow_Confirmed_to_Reg</bpmn:incoming>
+      <bpmn:outgoing>Flow_1q2mxua</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ut_mock_presenter" name="Mock Presenter Shows Up">
+      <bpmn:incoming>Flow_Ready_to_Arrival</bpmn:incoming>
+      <bpmn:outgoing>Flow_1320jye</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:textAnnotation id="Ann_Submitted">
+      <bpmn:text>Submissions received: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Submitted" sourceRef="Ann_Submitted" targetRef="ut_receive_submission" />
+    <bpmn:textAnnotation id="Ann_Invited">
+      <bpmn:text>Invitations sent: [n]  |  Accepted: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Invited" sourceRef="Ann_Invited" targetRef="ut_process_invitation" />
+    <bpmn:textAnnotation id="Ann_UnderReview">
+      <bpmn:text>Under review: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_UnderReview" sourceRef="Ann_UnderReview" targetRef="ut_score_abstract" />
+    <bpmn:textAnnotation id="Ann_Decision">
+      <bpmn:text>Accepted: [n]  |  Rejected: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Decision" sourceRef="Ann_Decision" targetRef="Gateway_AcceptReject" />
+    <bpmn:textAnnotation id="Ann_Format">
+      <bpmn:text>Oral: [n]  Poster: [n]  ePoster: [n]  Lightning: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Format" sourceRef="Ann_Format" targetRef="ut_assign_format" />
+    <bpmn:textAnnotation id="Ann_Confirmed">
+      <bpmn:text>Confirmed: [n]  |  Declined: [n]  |  Pending: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Confirmed" sourceRef="Ann_Confirmed" targetRef="Gateway_AuthorConfirms" />
+    <bpmn:textAnnotation id="Ann_Registered">
+      <bpmn:text>Registered: [n]  |  Pending: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Registered" sourceRef="Ann_Registered" targetRef="Gateway_RegisteredByDeadline" />
+    <bpmn:textAnnotation id="Ann_Presented">
+      <bpmn:text>Presented: [n]  |  No-show: [n]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Assoc_Ann_Presented" sourceRef="Ann_Presented" targetRef="Gateway_PresenterArrives" />
+    <bpmn:group id="Group_Stage1" categoryValueRef="CatVal_Group_Stage1" />
+    <bpmn:group id="Group_Stage2" categoryValueRef="CatVal_Group_Stage2" />
+    <bpmn:group id="Group_Stage3" categoryValueRef="CatVal_Group_Stage3" />
+    <bpmn:group id="Group_Stage4" categoryValueRef="CatVal_Group_Stage4" />
+    <bpmn:group id="Group_Stage5" categoryValueRef="CatVal_Group_Stage5" />
+    <bpmn:group id="Group_Stage6" categoryValueRef="CatVal_Group_Stage6" />
+  </bpmn:process>
+  <bpmn:category id="Cat_Group_Stage1">
+    <bpmn:categoryValue id="CatVal_Group_Stage1" value="STAGE 1:&#10;SUBMISSION" />
+  </bpmn:category>
+  <bpmn:category id="Cat_Group_Stage2">
+    <bpmn:categoryValue id="CatVal_Group_Stage2" value="STAGE 2:&#10;REVIEW &#38; RATING" />
+  </bpmn:category>
+  <bpmn:category id="Cat_Group_Stage3">
+    <bpmn:categoryValue id="CatVal_Group_Stage3" value="STAGE 3:&#10;DECISION &#38; FORMAT" />
+  </bpmn:category>
+  <bpmn:category id="Cat_Group_Stage4">
+    <bpmn:categoryValue id="CatVal_Group_Stage4" value="STAGE 4:&#10;NOTIFICATION &#38; CONFIRMATION" />
+  </bpmn:category>
+  <bpmn:category id="Cat_Group_Stage5">
+    <bpmn:categoryValue id="CatVal_Group_Stage5" value="STAGE 5:&#10;REGISTRATION" />
+  </bpmn:category>
+  <bpmn:category id="Cat_Group_Stage6">
+    <bpmn:categoryValue id="CatVal_Group_Stage6" value="STAGE 6:&#10;PRESENTATION" />
+  </bpmn:category>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="abstract_submission_lifecycle">
+      <bpmndi:BPMNShape id="StartEvent_FreePaper_di" bpmnElement="StartEvent_FreePaper">
+        <dc:Bounds x="192" y="412" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="175" y="452" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SubmissionValid_di" bpmnElement="Gateway_SubmissionValid" isMarkerVisible="true">
+        <dc:Bounds x="645" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="625" y="381" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_InvitationAccepted_di" bpmnElement="Gateway_InvitationAccepted" isMarkerVisible="true">
+        <dc:Bounds x="705" y="205" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="704" y="168" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AcceptReject_di" bpmnElement="Gateway_AcceptReject" isMarkerVisible="true">
+        <dc:Bounds x="1625" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1606" y="381" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_MergeAccepted_di" bpmnElement="Gateway_MergeAccepted" isMarkerVisible="true">
+        <dc:Bounds x="1815" y="405" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_InvalidSubmission_di" bpmnElement="EndEvent_InvalidSubmission">
+        <dc:Bounds x="842" y="532" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="832" y="572" width="57" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_InvitationDeclined_di" bpmnElement="EndEvent_InvitationDeclined">
+        <dc:Bounds x="842" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="815" y="352" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
+        <dc:Bounds x="1832" y="812" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1807" y="852" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1h22q57_di" bpmnElement="SendTask_NotifyAcceptance">
+        <dc:Bounds x="2232" y="412" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uhngwt_di" bpmnElement="ut_receive_submission">
+        <dc:Bounds x="445" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16zf17q_di" bpmnElement="ut_process_invitation">
+        <dc:Bounds x="445" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0d6vf8h_di" bpmnElement="ut_receive_invited_abstract">
+        <dc:Bounds x="865" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r8wq7f_di" bpmnElement="ut_assign_reviewers">
+        <dc:Bounds x="1095" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_192new9_di" bpmnElement="ut_score_abstract">
+        <dc:Bounds x="1335" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06uljbh_di" bpmnElement="SendTask_NotifyRejection">
+        <dc:Bounds x="1615" y="690" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_08ssxno_di" bpmnElement="ut_assign_format">
+        <dc:Bounds x="1955" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_033llrm_di" bpmnElement="Gateway_1kg5klm" isMarkerVisible="true">
+        <dc:Bounds x="305" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="288" y="462" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AuthorConfirms_di" bpmnElement="Gateway_AuthorConfirms" isMarkerVisible="true">
+        <dc:Bounds x="2665" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2650" y="368" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ResponseAfterReminder_di" bpmnElement="Gateway_ResponseAfterReminder" isMarkerVisible="true">
+        <dc:Bounds x="3005" y="625" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3065" y="636" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_MergeConfirmed_di" bpmnElement="Gateway_MergeConfirmed" isMarkerVisible="true">
+        <dc:Bounds x="3005" y="405" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AuthorDeclined_di" bpmnElement="EndEvent_AuthorDeclined">
+        <dc:Bounds x="2672" y="812" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2651" y="852" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_NoResponse_di" bpmnElement="EndEvent_NoResponse">
+        <dc:Bounds x="3012" y="812" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2989" y="852" width="82" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12gl24a_di" bpmnElement="SendTask_SendConfirmReminder">
+        <dc:Bounds x="2812" y="632" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_RegisteredByDeadline_di" bpmnElement="Gateway_RegisteredByDeadline" isMarkerVisible="true">
+        <dc:Bounds x="3435" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3415" y="368" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_RegAfterReminder_di" bpmnElement="Gateway_RegAfterReminder" isMarkerVisible="true">
+        <dc:Bounds x="3865" y="625" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3925" y="636" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_MergeRegistered_di" bpmnElement="Gateway_MergeRegistered" isMarkerVisible="true">
+        <dc:Bounds x="3865" y="405" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_NotRegistered_di" bpmnElement="EndEvent_NotRegistered">
+        <dc:Bounds x="3872" y="812" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3853" y="852" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1eehiil_di" bpmnElement="ut_upload-materials">
+        <dc:Bounds x="4025" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0lhnv64_di" bpmnElement="ut_speaker_ready_room">
+        <dc:Bounds x="4235" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_PresenterArrives_di" bpmnElement="Gateway_PresenterArrives" isMarkerVisible="true">
+        <dc:Bounds x="4675" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4658" y="368" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Presented_di" bpmnElement="EndEvent_Presented">
+        <dc:Bounds x="5102" y="412" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5089" y="452" width="62" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_NoShow_di" bpmnElement="EndEvent_NoShow">
+        <dc:Bounds x="5102" y="812" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5096" y="852" width="48" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1pe74zv_di" bpmnElement="ut_deliver_presentation">
+        <dc:Bounds x="4835" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r0e8dm_di" bpmnElement="ut_record_no_show">
+        <dc:Bounds x="4835" y="790" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_05jl6gm_di" bpmnElement="SendTask_SendRegReminder">
+        <dc:Bounds x="3540" y="632" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1a2lq96_di" bpmnElement="mock_registered">
+        <dc:Bounds x="3720" y="632" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1thwxdy_di" bpmnElement="ut_mock_confirmation">
+        <dc:Bounds x="2430" y="412" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0211ib1_di" bpmnElement="ut_mock_registration">
+        <dc:Bounds x="3240" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_173l12x_di" bpmnElement="ut_mock_presenter">
+        <dc:Bounds x="4430" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Decision_di" bpmnElement="Assoc_Ann_Decision">
+        <di:waypoint x="1811" y="522" />
+        <di:waypoint x="1666" y="439" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Confirmed_di" bpmnElement="Assoc_Ann_Confirmed">
+        <di:waypoint x="2748" y="295" />
+        <di:waypoint x="2698" y="413" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Registered_di" bpmnElement="Assoc_Ann_Registered">
+        <di:waypoint x="3564" y="321" />
+        <di:waypoint x="3472" y="417" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Presented_di" bpmnElement="Assoc_Ann_Presented">
+        <di:waypoint x="4496" y="275" />
+        <di:waypoint x="4686" y="419" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Submitted_di" bpmnElement="Ann_Submitted">
+        <dc:Bounds x="410" y="560" width="170" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_Invited_di" bpmnElement="Ann_Invited">
+        <dc:Bounds x="410" y="110" width="300" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_UnderReview_di" bpmnElement="Ann_UnderReview">
+        <dc:Bounds x="1370" y="305" width="140" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_Format_di" bpmnElement="Ann_Format">
+        <dc:Bounds x="1880" y="118" width="300" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1whghm6_di" bpmnElement="Flow_1whghm6">
+        <di:waypoint x="2530" y="430" />
+        <di:waypoint x="2665" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1q2mxua_di" bpmnElement="Flow_1q2mxua">
+        <di:waypoint x="3340" y="430" />
+        <di:waypoint x="3435" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1320jye_di" bpmnElement="Flow_1320jye">
+        <di:waypoint x="4530" y="430" />
+        <di:waypoint x="4675" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0b1z83a_di" bpmnElement="Flow_0b1z83a">
+        <di:waypoint x="3820" y="650" />
+        <di:waypoint x="3865" y="650" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Group_Stage1_di" bpmnElement="Group_Stage1">
+        <dc:Bounds x="157" y="83" width="893" height="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="569" y="83" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_Stage2_di" bpmnElement="Group_Stage2">
+        <dc:Bounds x="1060" y="83" width="460" height="422" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1263" y="83" width="54" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_Stage3_di" bpmnElement="Group_Stage3">
+        <dc:Bounds x="1540" y="83" width="600" height="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1808" y="83" width="64" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_Stage4_di" bpmnElement="Group_Stage4">
+        <dc:Bounds x="2197" y="83" width="893" height="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2601" y="83" width="85" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_FP_di" bpmnElement="Flow_Start_FP">
+        <di:waypoint x="228" y="430" />
+        <di:waypoint x="305" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Receive_to_Valid_di" bpmnElement="Flow_Receive_to_Valid">
+        <di:waypoint x="545" y="430" />
+        <di:waypoint x="645" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Valid_Yes_di" bpmnElement="Flow_Valid_Yes">
+        <di:waypoint x="695" y="430" />
+        <di:waypoint x="1095" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="883" y="402" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Valid_No_di" bpmnElement="Flow_Valid_No">
+        <di:waypoint x="670" y="455" />
+        <di:waypoint x="670" y="550" />
+        <di:waypoint x="842" y="550" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="739" y="531" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assign_to_Score_di" bpmnElement="Flow_Assign_to_Score">
+        <di:waypoint x="1195" y="430" />
+        <di:waypoint x="1335" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Score_to_Decision_di" bpmnElement="Flow_Score_to_Decision">
+        <di:waypoint x="1435" y="430" />
+        <di:waypoint x="1625" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Accept_di" bpmnElement="Flow_Accept">
+        <di:waypoint x="1675" y="430" />
+        <di:waypoint x="1815" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1728" y="402" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_di" bpmnElement="Flow_Reject">
+        <di:waypoint x="1650" y="455" />
+        <di:waypoint x="1650" y="690" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1646" y="566" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Rejection_to_End_di" bpmnElement="Flow_Rejection_to_End">
+        <di:waypoint x="1680" y="770" />
+        <di:waypoint x="1680" y="830" />
+        <di:waypoint x="1832" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Process_to_GW_di" bpmnElement="Flow_Process_to_GW">
+        <di:waypoint x="545" y="230" />
+        <di:waypoint x="705" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Inv_Accepted_di" bpmnElement="Flow_Inv_Accepted">
+        <di:waypoint x="755" y="230" />
+        <di:waypoint x="865" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="787" y="202" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Inv_Declined_di" bpmnElement="Flow_Inv_Declined">
+        <di:waypoint x="730" y="255" />
+        <di:waypoint x="730" y="330" />
+        <di:waypoint x="842" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="763" y="310" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Invited_to_Merge_di" bpmnElement="Flow_Invited_to_Merge">
+        <di:waypoint x="965" y="230" />
+        <di:waypoint x="1840" y="230" />
+        <di:waypoint x="1840" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Merge_to_Format_di" bpmnElement="Flow_Merge_to_Format">
+        <di:waypoint x="1865" y="430" />
+        <di:waypoint x="1955" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Format_to_Notify_di" bpmnElement="Flow_Format_to_Notify">
+        <di:waypoint x="2055" y="430" />
+        <di:waypoint x="2232" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notify_to_Confirm_di" bpmnElement="Flow_Notify_to_Confirm">
+        <di:waypoint x="2332" y="430" />
+        <di:waypoint x="2430" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Confirms_di" bpmnElement="Flow_Confirms">
+        <di:waypoint x="2715" y="430" />
+        <di:waypoint x="3005" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2838" y="402" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Declines_di" bpmnElement="Flow_Declines">
+        <di:waypoint x="2690" y="455" />
+        <di:waypoint x="2690" y="812" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2681" y="623" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoResponse_di" bpmnElement="Flow_NoResponse">
+        <di:waypoint x="2690" y="455" />
+        <di:waypoint x="2690" y="650" />
+        <di:waypoint x="2812" y="650" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2669" y="542" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reminder_to_GW_di" bpmnElement="Flow_Reminder_to_GW">
+        <di:waypoint x="2912" y="650" />
+        <di:waypoint x="3005" y="650" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Response_Confirms_di" bpmnElement="Flow_Response_Confirms">
+        <di:waypoint x="3030" y="625" />
+        <di:waypoint x="3030" y="455" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3020" y="530" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Response_No_di" bpmnElement="Flow_Response_No">
+        <di:waypoint x="3030" y="675" />
+        <di:waypoint x="3030" y="812" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3009" y="733" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Confirmed_to_Reg_di" bpmnElement="Flow_Confirmed_to_Reg">
+        <di:waypoint x="3055" y="430" />
+        <di:waypoint x="3240" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Registered_Yes_di" bpmnElement="Flow_Registered_Yes">
+        <di:waypoint x="3485" y="430" />
+        <di:waypoint x="3865" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3648" y="402" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Registered_No_di" bpmnElement="Flow_Registered_No">
+        <di:waypoint x="3460" y="455" />
+        <di:waypoint x="3460" y="650" />
+        <di:waypoint x="3540" y="650" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3435" y="542" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RegReminder_to_GW_di" bpmnElement="Flow_RegReminder_to_GW">
+        <di:waypoint x="3640" y="650" />
+        <di:waypoint x="3720" y="650" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RegAfter_Yes_di" bpmnElement="Flow_RegAfter_Yes">
+        <di:waypoint x="3890" y="625" />
+        <di:waypoint x="3890" y="455" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3875" y="530" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RegAfter_No_di" bpmnElement="Flow_RegAfter_No">
+        <di:waypoint x="3890" y="675" />
+        <di:waypoint x="3890" y="812" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3865" y="733" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reg_to_Upload_di" bpmnElement="Flow_Reg_to_Upload">
+        <di:waypoint x="3915" y="430" />
+        <di:waypoint x="4025" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Upload_to_Ready_di" bpmnElement="Flow_Upload_to_Ready">
+        <di:waypoint x="4125" y="430" />
+        <di:waypoint x="4235" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Ready_to_Arrival_di" bpmnElement="Flow_Ready_to_Arrival">
+        <di:waypoint x="4335" y="430" />
+        <di:waypoint x="4430" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Arrives_Yes_di" bpmnElement="Flow_Arrives_Yes">
+        <di:waypoint x="4725" y="430" />
+        <di:waypoint x="4835" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4755" y="402" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Arrives_No_di" bpmnElement="Flow_Arrives_No">
+        <di:waypoint x="4700" y="455" />
+        <di:waypoint x="4700" y="830" />
+        <di:waypoint x="4835" y="830" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4689" y="632" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Present_to_End_di" bpmnElement="Flow_Present_to_End">
+        <di:waypoint x="4935" y="430" />
+        <di:waypoint x="5102" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoShow_to_End_di" bpmnElement="Flow_NoShow_to_End">
+        <di:waypoint x="4935" y="830" />
+        <di:waypoint x="5102" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uupmbk_di" bpmnElement="Flow_1uupmbk">
+        <di:waypoint x="355" y="430" />
+        <di:waypoint x="445" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nnw8gb_di" bpmnElement="Flow_0nnw8gb">
+        <di:waypoint x="330" y="405" />
+        <di:waypoint x="330" y="230" />
+        <di:waypoint x="445" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Submitted_di" bpmnElement="Assoc_Ann_Submitted">
+        <di:waypoint x="420" y="560" />
+        <di:waypoint x="489" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Invited_di" bpmnElement="Assoc_Ann_Invited">
+        <di:waypoint x="558" y="165" />
+        <di:waypoint x="520" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_UnderReview_di" bpmnElement="Assoc_Ann_UnderReview">
+        <di:waypoint x="1373" y="355" />
+        <di:waypoint x="1390" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Ann_Format_di" bpmnElement="Assoc_Ann_Format">
+        <di:waypoint x="2030" y="173" />
+        <di:waypoint x="2030" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Decision_di" bpmnElement="Ann_Decision">
+        <dc:Bounds x="1710" y="522" width="300" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_Confirmed_di" bpmnElement="Ann_Confirmed">
+        <dc:Bounds x="2610" y="240" width="300" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_Stage5_di" bpmnElement="Group_Stage5">
+        <dc:Bounds x="3180" y="83" width="770" height="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3524" y="83" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_Registered_di" bpmnElement="Ann_Registered">
+        <dc:Bounds x="3440" y="266" width="300" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_Stage6_di" bpmnElement="Group_Stage6">
+        <dc:Bounds x="3990" y="83" width="1183" height="822" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4540" y="83" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ann_Presented_di" bpmnElement="Ann_Presented">
+        <dc:Bounds x="4310" y="220" width="300" height="55" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

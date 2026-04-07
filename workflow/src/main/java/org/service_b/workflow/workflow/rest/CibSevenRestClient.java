@@ -146,6 +146,30 @@ public class CibSevenRestClient {
         return "Json";
     }
 
+    /**
+     * Create a custom incident on an execution in CIB Seven.
+     * Use this when our workflow service fails to process a task callback so that
+     * the process does not silently continue with missing data.
+     */
+    public void createIncident(String executionId, String incidentType, String configuration) {
+        String url = cibSevenProperties.getBaseUrl() + "/execution/" + executionId + "/create-incident";
+
+        try {
+            Map<String, String> body = new HashMap<>();
+            body.put("incidentType", incidentType);
+            body.put("configuration", configuration);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), Void.class);
+            log.warn("Created incident on execution {}: {}", executionId, configuration);
+
+        } catch (Exception e) {
+            log.error("Failed to create incident on execution {}: {}", executionId, e.getMessage());
+        }
+    }
+
     // ============== Request/Response DTOs ==============
 
     @Data

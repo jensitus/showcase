@@ -59,4 +59,8 @@ export class WorkflowService {
     return this.http.get<{ processInstanceId: string }>(`${this.apiUrl}/api/process-instances/by-insurance/${insuranceId}`);
   }
 
+  getProcessInstanceIdBySubmissionId(submissionId: string): Observable<{ processInstanceId: string }> {
+    return this.http.get<{ processInstanceId: string }>(`${this.apiUrl}/api/process-instances/by-submission/${submissionId}`);
+  }
+
 }
