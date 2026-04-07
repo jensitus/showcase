@@ -20,6 +20,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: staging
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/workflow
             - name: SPRING_DATASOURCE_USERNAME
@@ -45,7 +47,7 @@ spec:
               value: http://engine:7001/engine-rest
             - name: TASKLIST_BASE_URL
               value: http://engine:7001/engine-rest
-            - name: WORKFLOW_SERVICE_BASE_URL
+            - name: WORKFLOW_SERVICE_URL
               value: http://backend:8080
             - name: SMTP_HOST
               value: smtp.protonmail.ch
@@ -86,11 +88,11 @@ spec:
             failureThreshold: 6
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
 ---
 apiVersion: v1
 kind: Service

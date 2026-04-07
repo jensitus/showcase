@@ -27,14 +27,12 @@
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "bpmn-js": "^17.9.2",
-    "i18next": "^23.11.4",
     "rxjs": "~7.8.1",
     "sockjs-client": "^1.6.1",
     "tslib": "^2.6.2",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-builders/custom-webpack": "^20.0.0",
     "@angular-devkit/build-angular": "^20.3.11",
     "@angular/cli": "^20.3.11",
     "@angular/compiler-cli": "^20.3.13",
