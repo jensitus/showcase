@@ -31,14 +31,15 @@ public class SubmissionWorkflowService {
     private final ProcessService processService;
     private final HashMapConverter hashMapConverter;
 
-    public Submission startSubmissionWorkflow(CreateSubmissionRequest request) throws Exception {
+    public Submission startSubmissionWorkflow(CreateSubmissionRequest request, String createdBy) throws Exception {
         // 1. Save submission — commits immediately (no outer transaction)
         Submission submission = submissionService.saveSubmission(
                 request.getTitle(),
                 request.getAuthors(),
                 request.getAbstractText(),
                 request.getTopic(),
-                request.getSubmitterEmail()
+                request.getSubmitterEmail(),
+                createdBy
         );
 
         // 2. Pre-create the ProcessEntity with submission linkage and NO processInstanceId yet,

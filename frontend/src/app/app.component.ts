@@ -28,6 +28,10 @@ export class AppComponent {
     title = 'service-b.org';
     collapedSideBar: boolean = false;
 
+    constructor() {
+        this.loginService.scheduleTokenExpiryFromStorage();
+    }
+
     private readonly noSidebarRoutes = ['/login', '/register', '/verify-email', '/complete-profile', '/forgot-password', '/reset-password', '/change-password'];
 
     private readonly currentUrl = toSignal(

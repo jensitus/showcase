@@ -13,6 +13,7 @@ public class SubmissionDto {
     private Integer submissionNumber;
     private String state;
     private String reviewerNotes;
+    private String createdBy;
     private LocalDateTime submittedAt;
     private LocalDateTime updatedAt;
 
@@ -45,6 +46,9 @@ public class SubmissionDto {
 
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }

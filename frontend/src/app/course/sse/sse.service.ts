@@ -2,6 +2,7 @@ import {Injectable, NgZone} from '@angular/core';
 import {Observable} from "rxjs";
 import {TaskListEntryDto} from "../../task/task-list-entry-dto";
 import {Insurance} from "../../insurance/insurance";
+import {Submission} from "../../submission/submission";
 
 @Injectable({
   providedIn: 'root'
@@ -50,6 +51,18 @@ export class SseService {
         observer.next(insurance);
       }
     })
+  }
+
+  createSubmissionEventSource(url: string): Observable<Submission> {
+    const eventSource = new EventSource(url);
+    return new Observable((observer: { next: (arg0: any) => void }) => {
+      eventSource.onmessage = event => {
+        this.zone.run(() => {
+          const submission: Submission = JSON.parse(event.data);
+          observer.next(submission);
+        });
+      };
+    });
   }
 
   // getEventSource(url: string, options: EventSourceInit): EventSource {

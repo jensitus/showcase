@@ -13,6 +13,10 @@ export class SubmissionService {
 
   constructor(private http: HttpClient) {}
 
+  getMySubmissions(): Observable<Submission[]> {
+    return this.http.get<Submission[]>(`${this.apiUrl}/api/submissions/my`);
+  }
+
   createSubmission(request: {
     title: string;
     authors: string;

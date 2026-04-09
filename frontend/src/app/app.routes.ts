@@ -23,6 +23,7 @@ import {adminGuard} from "./auth/admin.guard";
 import {AdminUsersComponent} from "./admin/admin-users/admin-users.component";
 import {SubmitAbstractComponent} from "./submission/submit-abstract/submit-abstract.component";
 import {SubmissionListComponent} from "./submission/submission-list/submission-list.component";
+import {InsuranceShowcaseComponent} from "./insurance/insurance-showcase/insurance-showcase.component";
 
 export const routes: Routes = [
     {path: '', component: HomeComponent},
@@ -48,4 +49,5 @@ export const routes: Routes = [
     {path: 'admin/users', component: AdminUsersComponent, canActivate: [adminGuard]},
     {path: 'submissions', component: SubmissionListComponent},
     {path: 'submit-abstract', component: SubmitAbstractComponent},
+    {path: 'insurance-showcase', component: InsuranceShowcaseComponent},
 ];

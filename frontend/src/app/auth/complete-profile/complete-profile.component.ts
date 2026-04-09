@@ -3,7 +3,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {CustomerService} from '../../customer/customer.service';
 import {FormsModule} from '@angular/forms';
 import {Customer} from '../../customer/customer';
-import {NgbDatepicker, NgbDateStruct, NgbInputDatepicker} from '@ng-bootstrap/ng-bootstrap';
+import {NgbDateStruct, NgbInputDatepicker} from '@ng-bootstrap/ng-bootstrap';
 import {KeyValuePipe} from '@angular/common';
 import {Router} from '@angular/router';
 import {Gender} from '../../customer/gender';
@@ -14,7 +14,6 @@ import {TranslateModule} from "@ngx-translate/core";
     selector: 'app-complete-profile',
     imports: [
         FormsModule,
-        NgbDatepicker,
         NgbInputDatepicker,
         KeyValuePipe,
         TranslateModule,

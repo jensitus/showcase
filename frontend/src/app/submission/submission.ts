@@ -8,6 +8,7 @@ export interface Submission {
   submissionNumber: number;
   state: string;
   reviewerNotes?: string;
+  createdBy?: string;
   submittedAt: string;
   updatedAt?: string;
 }
