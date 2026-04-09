@@ -1,9 +1,9 @@
 <div class="container">
     <h3>{{ 'AUTH.LOGIN.TITLE' | translate }}</h3>
-    @if (showErrorToast()) {
-        <ngb-toast [autohide]="false" (hidden)="showErrorToast.set(false)">
-            <b>{{ errorMessage() }}</b>
-        </ngb-toast>
+    @if (invalidLogin()) {
+        <div class="alert alert-danger" role="alert">
+            {{ 'AUTH.LOGIN.INVALID_CREDENTIALS' | translate }}
+        </div>
     }
     <div class="row">
         <div class="col-md-6">
