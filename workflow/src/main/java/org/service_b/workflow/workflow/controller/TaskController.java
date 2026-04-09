@@ -120,6 +120,11 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getActiveTasksByInsuranceId(insuranceId));
     }
 
+    @GetMapping("/by-submission/{submissionId}")
+    public ResponseEntity<List<TaskDto>> getTasksBySubmissionId(@PathVariable UUID submissionId) {
+        return ResponseEntity.ok(taskService.getActiveTasksBySubmissionId(submissionId));
+    }
+
     @PostMapping("/{task_id}/complete")
     public ResponseEntity<Void> completeTask(@PathVariable("task_id") String taskId, @RequestBody CompleteTaskDto completeTaskDto) {
         taskService.completeTask(taskId, completeTaskDto);

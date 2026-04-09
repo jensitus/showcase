@@ -9,6 +9,7 @@ import org.service_b.workflow.sse.EventService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,13 +23,15 @@ public class SubmissionService {
                                      String authors,
                                      String abstractText,
                                      String topic,
-                                     String submitterEmail) {
+                                     String submitterEmail,
+                                     String createdBy) {
         Submission submission = new Submission();
         submission.setTitle(title);
         submission.setAuthors(authors);
         submission.setAbstractText(abstractText);
         submission.setTopic(SubmissionTopic.valueOf(topic));
         submission.setSubmitterEmail(submitterEmail);
+        submission.setCreatedBy(createdBy);
         submission.setSubmissionNumber(generateSubmissionNumber());
         submission.setSubmittedAt(LocalDateTime.now());
         submission.setState(SubmissionState.SUBMITTED);
@@ -55,6 +58,14 @@ public class SubmissionService {
 
     public Submission getSubmission(UUID submissionId) {
         return submissionRepository.findById(submissionId).orElseThrow();
+    }
+
+    public List<Submission> getSubmissionsByEmail(String email) {
+        return submissionRepository.findBySubmitterEmailOrderBySubmittedAtDesc(email);
+    }
+
+    public List<Submission> getMySubmissions(String username) {
+        return submissionRepository.findByCreatedByOrderBySubmittedAtDesc(username);
     }
 
     private int generateSubmissionNumber() {

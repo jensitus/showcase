@@ -42,3 +42,13 @@ databaseChangeLog:
               - column:
                   name: reviewer_notes
                   type: varchar(8192)
+  - changeSet:
+      id: submission-add-created-by
+      author: jensitus
+      changes:
+        - addColumn:
+            tableName: submission
+            columns:
+              - column:
+                  name: created_by
+                  type: varchar(255)

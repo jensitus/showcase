@@ -147,13 +147,23 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskDto> getActiveTasksByInsuranceId(UUID insuranceId) {
         return processService.findProcessInstanceIdByInsuranceId(insuranceId)
-                             .map(processInstanceId -> taskRepository.findByProcessInstanceId(processInstanceId)
-                                                                     .stream()
-                                                                     .filter(t -> !"COMPLETED".equals(t.getTaskState())
-                                                                               && !"CANCELLED".equals(t.getTaskState()))
-                                                                     .map(taskMapper::toDto)
-                                                                     .collect(Collectors.toList()))
+                             .map(this::findActiveTasks)
                              .orElse(List.of());
+    }
+
+    public List<TaskDto> getActiveTasksBySubmissionId(UUID submissionId) {
+        return processService.findProcessInstanceIdBySubmissionId(submissionId)
+                             .map(this::findActiveTasks)
+                             .orElse(List.of());
+    }
+
+    private List<TaskDto> findActiveTasks(String processInstanceId) {
+        return taskRepository.findByProcessInstanceId(processInstanceId)
+                             .stream()
+                             .filter(t -> !"COMPLETED".equals(t.getTaskState())
+                                       && !"CANCELLED".equals(t.getTaskState()))
+                             .map(taskMapper::toDto)
+                             .collect(Collectors.toList());
     }
 
     @Transactional

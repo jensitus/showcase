@@ -1,5 +1,5 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
-import {JsonPipe, KeyValue, KeyValuePipe} from "@angular/common";
+import {KeyValuePipe} from "@angular/common";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {Coverage} from "../coverage";
 import {Amount} from "../amount";
@@ -11,7 +11,6 @@ import {TranslateModule} from "@ngx-translate/core";
   selector: 'app-payment-schedule',
   standalone: true,
   imports: [
-    JsonPipe,
     KeyValuePipe,
     ReactiveFormsModule,
     FormsModule,

@@ -14,10 +14,7 @@ import {TranslateModule} from "@ngx-translate/core";
   selector: 'app-create-customer',
   imports: [
     FormsModule,
-    NgbDatepicker,
-    JsonPipe,
     NgbInputDatepicker,
-    NgbAlert,
     KeyValuePipe,
     TranslateModule
   ],

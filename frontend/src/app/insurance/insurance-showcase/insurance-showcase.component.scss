@@ -48,3 +48,18 @@
         height: 500px;
     }
 }
+
+.insurance-type-card {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+
+    &:hover:not(.disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}

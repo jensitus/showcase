@@ -3,7 +3,15 @@
     <!-- Header with Navigation -->
     <div class="header">
         <button class="back-button" (click)="goBack()">
-            ← {{ returnTo() === 'profile' ? ('TASKS.BACK_TO_PROFILE' | translate) : ('TASKS.BACK_TO_LIST' | translate) }}
+            ← @if (returnTo() === 'profile') {
+                {{ 'TASKS.BACK_TO_PROFILE' | translate }}
+            } @else if (returnTo() === 'submissions') {
+                {{ 'TASKS.BACK_TO_SUBMISSIONS' | translate }}
+            } @else if (returnTo() === 'insurance-showcase') {
+                {{ 'TASKS.BACK_TO_INSURANCE' | translate }}
+            } @else {
+                {{ 'TASKS.BACK_TO_LIST' | translate }}
+            }
         </button>
         @if (task()) {
             <h2>{{ task().name }}</h2>

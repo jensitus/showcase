@@ -4,7 +4,7 @@ import {Subscription} from "rxjs";
 import {CustomerService} from "../customer.service";
 import {Customer} from "../customer";
 import {FormsModule} from "@angular/forms";
-import {DatePipe, JsonPipe, KeyValuePipe} from "@angular/common";
+import {DatePipe} from "@angular/common";
 import {TaskService} from "../../task/service/task.service";
 import {TaskListEntryDto} from "../../task/task-list-entry-dto";
 import {SseService} from "../../course/sse/sse.service";
@@ -17,8 +17,6 @@ import {TranslateModule} from "@ngx-translate/core";
   standalone: true,
   imports: [
     FormsModule,
-    JsonPipe,
-    KeyValuePipe,
     RouterLink,
     DatePipe,
     TranslateModule

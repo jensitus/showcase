@@ -7,7 +7,6 @@ import {DatePipe, KeyValuePipe} from "@angular/common";
 import {TaskConfig} from "../../task/task-config";
 import {TaskFormComponent} from "../../task/task-form/task-form.component";
 import {CompleteTaskEvent} from "../../task/CompleteTaskEvent";
-import {BpmnViewerComponent} from "../bpmn-viewer/bpmn-viewer.component";
 import {TranslateModule} from "@ngx-translate/core";
 
 @Component({
@@ -18,7 +17,6 @@ import {TranslateModule} from "@ngx-translate/core";
         DatePipe,
         KeyValuePipe,
         TaskFormComponent,
-        BpmnViewerComponent,
         TranslateModule
     ],
     templateUrl: './task-detail.component.html',
@@ -175,9 +173,7 @@ export class TaskDetailComponent implements OnInit {
         this.taskService.completeTask(this.task()!.taskId, completeTask).subscribe({
             next: (response) => {
                 console.log('Task completed successfully:', response);
-                this.router.navigate(['/new-task-list'], {
-                    queryParams: {tenantId: this.task()!.tenantId}
-                });
+                this.goBack();
             },
             error: (err) => {
                 console.error('Error completing task:', err);
@@ -188,6 +184,14 @@ export class TaskDetailComponent implements OnInit {
     goBack(): void {
         if (this.returnTo() === 'profile') {
             this.router.navigate(['/profile']);
+            return;
+        }
+        if (this.returnTo() === 'submissions') {
+            this.router.navigate(['/submissions']);
+            return;
+        }
+        if (this.returnTo() === 'insurance-showcase') {
+            this.router.navigate(['/insurance-showcase']);
             return;
         }
         const tenantId = this.task()?.tenantId;

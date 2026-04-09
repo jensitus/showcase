@@ -8,7 +8,10 @@ import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.service.SubmissionService;
 import org.service_b.workflow.workflow.service.SubmissionWorkflowService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -19,9 +22,17 @@ public class SubmissionController {
     private final SubmissionService submissionService;
     private final SubmissionWorkflowService submissionWorkflowService;
 
+    @GetMapping("/my")
+    public ResponseEntity<List<SubmissionDto>> getMySubmissions(Authentication authentication) {
+        List<SubmissionDto> dtos = submissionService.getMySubmissions(authentication.getName())
+                .stream().map(this::toDto).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
     @PostMapping
-    public ResponseEntity<SubmissionDto> createSubmission(@RequestBody CreateSubmissionRequest request) throws Exception {
-        Submission submission = submissionWorkflowService.startSubmissionWorkflow(request);
+    public ResponseEntity<SubmissionDto> createSubmission(@RequestBody CreateSubmissionRequest request,
+                                                          Authentication authentication) throws Exception {
+        Submission submission = submissionWorkflowService.startSubmissionWorkflow(request, authentication.getName());
         SubmissionDto dto = toDto(submission);
         return ResponseEntity.ok(dto);
     }
@@ -36,6 +47,7 @@ public class SubmissionController {
         dto.setSubmitterEmail(submission.getSubmitterEmail());
         dto.setSubmissionNumber(submission.getSubmissionNumber());
         dto.setState(submission.getSubmissionState() != null ? submission.getSubmissionState().name() : null);
+        dto.setCreatedBy(submission.getCreatedBy());
         dto.setSubmittedAt(submission.getSubmittedAt());
         dto.setUpdatedAt(submission.getUpdatedAt());
         return dto;

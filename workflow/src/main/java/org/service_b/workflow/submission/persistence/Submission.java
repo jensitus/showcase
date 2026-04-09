@@ -41,6 +41,9 @@ public class Submission implements Processable {
     @Column(name = "submitter_email")
     String submitterEmail;
 
+    @Column(name = "created_by")
+    String createdBy;
+
     @Column(name = "submission_number")
     Integer submissionNumber;
 
@@ -80,6 +83,9 @@ public class Submission implements Processable {
 
     public String getSubmitterEmail() { return submitterEmail; }
     public void setSubmitterEmail(String submitterEmail) { this.submitterEmail = submitterEmail; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
     public Integer getSubmissionNumber() { return submissionNumber; }
     public void setSubmissionNumber(Integer submissionNumber) { this.submissionNumber = submissionNumber; }

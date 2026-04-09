@@ -35,58 +35,117 @@
     </div>
   </div>
 
-  <!-- Running submissions -->
   @if (loading()) {
-    <p class="text-muted">{{ 'SUBMISSION.LOADING' | translate }}</p>
-  } @else if (workflows().length > 0) {
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">{{ 'CFP.ACTIVE_TITLE' | translate }}</h5>
-        <span class="badge bg-secondary">{{ workflows().length }}</span>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>{{ 'CFP.BUSINESS_KEY' | translate }}</th>
-                <th>{{ 'CFP.PROCESS_ID' | translate }}</th>
-                <th>{{ 'CFP.STATUS' | translate }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (wf of workflows(); track wf.id) {
-                <tr [class.table-primary]="selectedProcessId() === wf.id">
-                  <td>{{ wf.businessKey }}</td>
-                  <td class="text-muted small font-monospace">{{ wf.id }}</td>
-                  <td><span class="badge bg-primary">{{ 'CFP.RUNNING' | translate }}</span></td>
-                  <td>
-                    <button class="badge bg-secondary border-0 text-white"
-                            (click)="selectProcess(selectedProcessId() === wf.id ? null : wf.id)">
-                      {{ 'PROFILE.VIEW_PROCESS' | translate }}
-                    </button>
-                  </td>
+    <div class="text-center py-4">
+      <div class="spinner-border text-success" role="status"></div>
+    </div>
+  } @else {
+
+    <!-- My Abstracts -->
+    @if (mySubmissions().length > 0) {
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{ 'CFP.MY_ABSTRACTS' | translate }}</h5>
+          <span class="badge bg-secondary">{{ mySubmissions().length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'CFP.COL_NUMBER' | translate }}</th>
+                  <th>{{ 'CFP.COL_TITLE' | translate }}</th>
+                  <th>{{ 'CFP.COL_AUTHORS' | translate }}</th>
+                  <th>{{ 'CFP.COL_TOPIC' | translate }}</th>
+                  <th>{{ 'CFP.COL_STATE' | translate }}</th>
+                  <th>{{ 'CFP.COL_SUBMITTED' | translate }}</th>
+                  <th>{{ 'CFP.COL_TASK' | translate }}</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (submission of mySubmissions(); track submission.id) {
+                  <tr [class.table-success]="highlightedSubmissionId() === submission.id">
+                    <td class="text-muted small font-monospace">{{ submission.submissionNumber }}</td>
+                    <td><strong>{{ submission.title }}</strong></td>
+                    <td class="text-muted small">{{ submission.authors }}</td>
+                    <td class="text-muted small">{{ submission.topic }}</td>
+                    <td>
+                      <span class="badge" [class]="getStateClass(submission.state)">
+                        {{ submission.state }}
+                      </span>
+                    </td>
+                    <td class="text-muted small">{{ submission.submittedAt | date:'shortDate' }}</td>
+                    <td>
+                      @if (submissionTaskMap().get(submission.id)) {
+                        <a [routerLink]="['/tasks', submissionTaskMap().get(submission.id)!.taskId]"
+                           [queryParams]="{returnTo: 'submissions'}"
+                           class="link-primary text-decoration-none">
+                          {{ submissionTaskMap().get(submission.id)!.name }}
+                        </a>
+                      } @else if (completedSubmissionProcessMap().get(submission.id)) {
+                        <button class="badge bg-secondary border-0 text-white"
+                                (click)="selectProcess(completedSubmissionProcessMap().get(submission.id)!)">
+                          {{ 'PROFILE.VIEW_PROCESS' | translate }}
+                        </button>
+                      } @else {
+                        <span class="text-muted small">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    }
 
-    <!-- BPMN viewer -->
-    <div class="bpmn-section">
-      <div class="mb-3">
-        <h5 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>{{ 'PROFILE.LIVE_DIAGRAM' | translate }}</h5>
-        <p class="text-muted small mb-0">{{ 'PROFILE.LIVE_DIAGRAM_INFO' | translate }}</p>
+    <!-- Live BPMN Diagram -->
+    @if (allProcessInstanceIds().length > 0) {
+      <div class="bpmn-section">
+        <div class="mb-3">
+          <h5 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>{{ 'PROFILE.LIVE_DIAGRAM' | translate }}</h5>
+          <p class="text-muted small mb-0">{{ 'PROFILE.LIVE_DIAGRAM_INFO' | translate }}</p>
+        </div>
+
+        @if (allProcessInstanceIds().length > 1) {
+          <ul class="nav nav-pills mb-3">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="selectedProcessId() === null"
+                      (click)="selectProcess(null)">
+                {{ 'PROFILE.ALL' | translate }}
+              </button>
+            </li>
+            @for (processId of allProcessInstanceIds(); track processId; let i = $index) {
+              <li class="nav-item">
+                <button class="nav-link"
+                        [class.active]="selectedProcessId() === processId"
+                        (click)="selectProcess(processId)">
+                  {{ 'PROFILE.PROCESS' | translate:{number: i + 1} }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="bpmn-legend">
+          <span class="legend-item">
+            <span class="legend-badge badge-active">▶</span> {{ 'PROFILE.LEGEND_ACTIVE' | translate }}
+          </span>
+          <span class="legend-item">
+            <span class="legend-badge badge-completed">✓</span> {{ 'PROFILE.LEGEND_COMPLETED' | translate }}
+          </span>
+          <span class="legend-item">
+            <span class="legend-badge badge-incident">⚠</span> {{ 'PROFILE.LEGEND_INCIDENT' | translate }}
+          </span>
+        </div>
+        <app-bpmn-viewer
+          [workflowKey]="'abstract_submission_lifecycle'"
+          [tenantId]="'cfp'"
+          [processInstanceKeys]="displayedProcessInstanceIds()">
+        </app-bpmn-viewer>
       </div>
-      <app-bpmn-viewer
-        [workflowKey]="'abstract_submission_lifecycle'"
-        [tenantId]="'cfp'"
-        [processInstanceKeys]="displayedProcessInstanceIds()">
-      </app-bpmn-viewer>
-    </div>
+    }
   }
 
 </div>

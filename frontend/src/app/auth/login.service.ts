@@ -48,6 +48,26 @@ export class LoginService {
         sessionStorage.setItem(this.USER_NAME_SESSION_ATTRIBUTE_NAME, JSON.stringify(response));
         sessionStorage.setItem('token', response.token);
         this.currentUser.set(this.getLoggedInUserName());
+        this.scheduleTokenExpiry(response.token);
+    }
+
+    scheduleTokenExpiryFromStorage(): void {
+        const token = sessionStorage.getItem('token');
+        if (token) this.scheduleTokenExpiry(token);
+    }
+
+    private scheduleTokenExpiry(token: string): void {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiresInMs = payload.exp * 1000 - Date.now();
+            if (expiresInMs > 0) {
+                setTimeout(() => this.logout(), expiresInMs);
+            } else {
+                this.logout();
+            }
+        } catch {
+            // not a valid JWT — ignore
+        }
     }
 
     logout() {
