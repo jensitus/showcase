@@ -30,7 +30,8 @@
       "PASSWORD": "Passwort",
       "SUBMIT": "Anmelden",
       "REGISTER": "Konto erstellen",
-      "FORGOT_PASSWORD": "Passwort vergessen?"
+      "FORGOT_PASSWORD": "Passwort vergessen?",
+      "INVALID_CREDENTIALS": "Ungültiger Benutzername oder Passwort. Bitte erneut versuchen."
     },
     "REGISTER": {
       "TITLE": "Konto erstellen",
