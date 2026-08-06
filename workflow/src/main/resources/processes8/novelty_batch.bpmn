@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_NoveltyBatch" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0">
+  <bpmn:process id="novelty_batch" name="Novelty Batch Screening" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:documentation>Batch-screen submitted abstracts against the historical corpus via the novelty pipeline: ingest -> screen (chunked) -> build results.json + flagged report -> notify the committee. Triage evidence for human reviewers, never an accept/reject.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_Start" name="Batch triggered">
+      <bpmn:outgoing>Flow_Start_Ingest</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="st_ingest" name="Ingest submissions" camunda:type="external" camunda:topic="novelty_ingest">
+      <bpmn:incoming>Flow_Start_Ingest</bpmn:incoming>
+      <bpmn:outgoing>Flow_Ingest_Screen</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="st_screen" name="Screen via pipeline (chunked)" camunda:type="external" camunda:topic="novelty_screen">
+      <bpmn:incoming>Flow_Ingest_Screen</bpmn:incoming>
+      <bpmn:outgoing>Flow_Screen_Report</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="st_report" name="Build results + flagged report" camunda:type="external" camunda:topic="novelty_report">
+      <bpmn:incoming>Flow_Screen_Report</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_Notify</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="st_notify" name="Notify committee" camunda:type="external" camunda:topic="novelty_notify">
+      <bpmn:incoming>Flow_Report_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Done" name="Report ready">
+      <bpmn:incoming>Flow_Notify_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Ingest" sourceRef="StartEvent_Start" targetRef="st_ingest" />
+    <bpmn:sequenceFlow id="Flow_Ingest_Screen" sourceRef="st_ingest" targetRef="st_screen" />
+    <bpmn:sequenceFlow id="Flow_Screen_Report" sourceRef="st_screen" targetRef="st_report" />
+    <bpmn:sequenceFlow id="Flow_Report_Notify" sourceRef="st_report" targetRef="st_notify" />
+    <bpmn:sequenceFlow id="Flow_Notify_End" sourceRef="st_notify" targetRef="EndEvent_Done" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="novelty_batch">
+      <bpmndi:BPMNShape id="StartEvent_Start_di" bpmnElement="StartEvent_Start">
+        <dc:Bounds x="160" y="100" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="146" y="143" width="65" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_ingest_di" bpmnElement="st_ingest">
+        <dc:Bounds x="250" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_screen_di" bpmnElement="st_screen">
+        <dc:Bounds x="410" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_report_di" bpmnElement="st_report">
+        <dc:Bounds x="570" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_notify_di" bpmnElement="st_notify">
+        <dc:Bounds x="730" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Done_di" bpmnElement="EndEvent_Done">
+        <dc:Bounds x="892" y="100" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="878" y="143" width="65" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_Ingest_di" bpmnElement="Flow_Start_Ingest">
+        <di:waypoint x="196" y="118" /><di:waypoint x="250" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Ingest_Screen_di" bpmnElement="Flow_Ingest_Screen">
+        <di:waypoint x="350" y="118" /><di:waypoint x="410" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Screen_Report_di" bpmnElement="Flow_Screen_Report">
+        <di:waypoint x="510" y="118" /><di:waypoint x="570" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Report_Notify_di" bpmnElement="Flow_Report_Notify">
+        <di:waypoint x="670" y="118" /><di:waypoint x="730" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notify_End_di" bpmnElement="Flow_Notify_End">
+        <di:waypoint x="830" y="118" /><di:waypoint x="892" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

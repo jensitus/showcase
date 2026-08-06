@@ -67,3 +67,10 @@ showcase:
   # Set to true to simulate a task creation failure (triggers CIB Seven incident).
   # MUST be false in production.
   simulate-task-failure: false
+
+novelty:
+  # Novelty pipeline API on the Spark. Demo: via the SSH tunnel (local 8090 -> Spark 8080).
+  # Real run: a direct network path to the Spark.
+  api-base-url: ${NOVELTY_API_BASE_URL:http://localhost:8090}
+  chunk-size: ${NOVELTY_CHUNK_SIZE:500}
+  tenant: ${NOVELTY_TENANT:screening}
