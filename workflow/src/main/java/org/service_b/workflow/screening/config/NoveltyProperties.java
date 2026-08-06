@@ -19,4 +19,6 @@ public class NoveltyProperties {
     private int chunkSize = 500;
     /** CIB Seven tenant this batch process is deployed under. */
     private String tenant = "screening";
+    /** Working directory for per-batch files (submissions, results, report). */
+    private String workDir = "data/screening";
 }

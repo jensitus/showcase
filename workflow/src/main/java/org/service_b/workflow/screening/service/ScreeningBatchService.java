@@ -3,6 +3,8 @@ package org.service_b.workflow.screening.service;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.screening.client.NoveltyApiClient;
 import org.service_b.workflow.screening.config.NoveltyProperties;
+import org.service_b.workflow.screening.dto.BatchSummary;
+import org.service_b.workflow.screening.dto.Submission;
 import org.service_b.workflow.workflow.config.CibSevenProperties;
 import org.service_b.workflow.workflow.config.ExternalTaskConfig;
 import org.service_b.workflow.workflow.rest.CibSevenRestClient;
@@ -11,8 +13,13 @@ import org.service_b.workflow.workflow.service.FetchAndLockService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * External-task worker for the {@code novelty_batch} process. It orchestrates the
@@ -33,16 +40,22 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
 
     private final NoveltyApiClient noveltyApiClient;
     private final NoveltyProperties noveltyProperties;
+    private final IngestService ingestService;
+    private final ReportService reportService;
     private final Map<String, ExternalTaskConfig.TaskDefinition> taskDefinitions;
 
     public ScreeningBatchService(FetchAndLockService fetchAndLockService,
                                  CibSevenProperties cibSevenProperties,
                                  CibSevenRestClient cibSevenRestClient,
                                  NoveltyApiClient noveltyApiClient,
-                                 NoveltyProperties noveltyProperties) {
+                                 NoveltyProperties noveltyProperties,
+                                 IngestService ingestService,
+                                 ReportService reportService) {
         super(fetchAndLockService, cibSevenProperties, cibSevenRestClient);
         this.noveltyApiClient = noveltyApiClient;
         this.noveltyProperties = noveltyProperties;
+        this.ingestService = ingestService;
+        this.reportService = reportService;
         this.taskDefinitions = initializeTaskDefinitions();
     }
 
@@ -70,16 +83,23 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
 
     // ── Handlers (SKELETON) ─────────────────────────────────────────────────
 
-    /** Load the export at {@code exportPath}, normalise to {id,title,abstract}, count. */
+    /** Load the export at {@code exportPath}, normalise to {id,title,abstract}, write submissions.jsonl. */
     private Map<String, Object> handleIngest(Map<String, Map<String, Object>> variables) {
         String exportPath = strVar(variables, "exportPath");
-        log.info("[novelty_batch] ingest from {}", exportPath);
-        // TODO: read the export (congress JSON via convert, or .jsonl / .csv),
-        //       normalise to a submissions file, count total, init the checkpoint.
-        Map<String, Object> out = new HashMap<>();
-        out.put("total", 0);              // TODO real count
-        out.put("batchId", "TODO");       // TODO a persisted batch id
-        return out;
+        String batchId = UUID.randomUUID().toString().substring(0, 8);
+        Path workDir = Paths.get(noveltyProperties.getWorkDir(), batchId);
+        log.info("[novelty_batch] ingest batch {} from {}", batchId, exportPath);
+        try {
+            List<Submission> submissions = ingestService.read(Paths.get(exportPath));
+            ingestService.writeJsonl(submissions, workDir.resolve("submissions.jsonl"));
+            Map<String, Object> out = new HashMap<>();
+            out.put("batchId", batchId);
+            out.put("total", submissions.size());
+            out.put("workDir", workDir.toString());
+            return out;
+        } catch (IOException e) {
+            throw new RuntimeException("ingest failed for " + exportPath + ": " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -111,12 +131,19 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
     /** Aggregate all results into results.json + a committee-facing flagged.csv. */
     private Map<String, Object> handleReport(Map<String, Map<String, Object>> variables) {
         String batchId = strVar(variables, "batchId");
+        Path workDir = Paths.get(strVar(variables, "workDir"));
         log.info("[novelty_batch] build report for batch {}", batchId);
-        // TODO: write results.json (all) + flagged.csv (the flagged ~20%, most-suspicious first).
-        Map<String, Object> out = new HashMap<>();
-        out.put("reportPath", "TODO");
-        out.put("flaggedCount", 0);
-        return out;
+        try {
+            BatchSummary summary = reportService.build(
+                    workDir.resolve("results.jsonl"), workDir.resolve("submissions.jsonl"), workDir);
+            Map<String, Object> out = new HashMap<>();
+            out.put("reportPath", workDir.resolve("flagged.csv").toString());
+            out.put("flaggedCount", summary.getFlagged());
+            out.put("total", summary.getTotal());
+            return out;
+        } catch (IOException e) {
+            throw new RuntimeException("report failed for batch " + batchId + ": " + e.getMessage(), e);
+        }
     }
 
     /** Notify the committee: how many flagged of how many, and where the report is. */
