@@ -21,4 +21,10 @@ public class NoveltyProperties {
     private String tenant = "screening";
     /** Working directory for per-batch files (submissions, results, report). */
     private String workDir = "data/screening";
+    /** External-task lock window for the screen step; extended after each chunk. */
+    private int screenLockMs = 300_000;      // 5 min
+    /** How often to poll a chunk's screening job. */
+    private long pollIntervalMs = 3_000;
+    /** Max time to wait for a single chunk before giving up (incident + resume later). */
+    private long chunkMaxWaitMs = 1_800_000;  // 30 min
 }

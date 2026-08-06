@@ -23,3 +23,5 @@ databaseChangeLog:
       file: /db/changelog/update-default-user-passwords.yaml
   - include:
       file: /db/changelog/submission.yaml
+  - include:
+      file: /db/changelog/screening-chunk.yaml

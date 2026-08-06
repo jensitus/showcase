@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: screening-chunk
+      author: jensitus
+      changes:
+        - createTable:
+            tableName: screening_chunk
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: batch_id
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: chunk_no
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: screened_count
+                  type: int
+              - column:
+                  name: updated_at
+                  type: timestamp
+        - addUniqueConstraint:
+            tableName: screening_chunk
+            columnNames: batch_id, chunk_no
+            constraintName: uq_screening_chunk_batch_chunk
