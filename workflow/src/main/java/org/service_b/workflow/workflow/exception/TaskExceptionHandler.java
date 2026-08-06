@@ -48,6 +48,14 @@ public class TaskExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(ProcessStartException.class)
+    public ResponseEntity<ErrorResponse> handleProcessStart(ProcessStartException ex) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_GATEWAY.value(),
+                                                ex.getMessage(),
+                                                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
+    }
+
     @Data
     @AllArgsConstructor
     public static class ErrorResponse {

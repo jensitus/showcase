@@ -649,7 +649,7 @@
         <di:waypoint x="2690" y="455" />
         <di:waypoint x="2690" y="812" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2681" y="703" width="43" height="14" />
+          <dc:Bounds x="2648" y="723" width="43" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_NoResponse_di" bpmnElement="Flow_NoResponse">

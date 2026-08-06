@@ -56,6 +56,10 @@ public class SubmissionService {
         submissionRepository.save(submission);
     }
 
+    public void deleteSubmission(UUID submissionId) {
+        submissionRepository.deleteById(submissionId);
+    }
+
     public Submission getSubmission(UUID submissionId) {
         return submissionRepository.findById(submissionId).orElseThrow();
     }

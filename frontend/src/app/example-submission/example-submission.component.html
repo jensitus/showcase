@@ -1,0 +1,116 @@
+<section class="wrap">
+  <header>
+    <h1>{{ tr('submissions.new') }}</h1>
+    <p class="note">Example wizard — in-memory mocks, no backend. Finishing shows the assembled payload instead of navigating.</p>
+  </header>
+
+  <!-- Conference + type always come first; outside the wizard. -->
+  <div class="meta">
+    <label>
+      <span>{{ tr('submissions.conference') }}</span>
+      <select [ngModel]="slug()" (ngModelChange)="onSlugChange($event)" required>
+        @for (c of conferences(); track c.id) {
+          <option [value]="c.slug">{{ c.displayName }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>{{ tr('submissions.type') }}</span>
+      <select [ngModel]="type()" (ngModelChange)="type.set($event)" required>
+        <option value="FREE_PAPER">Free paper</option>
+        <option value="INVITED">Invited talk</option>
+        <option value="LATE_BREAKING">Late-breaking</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Stepper breadcrumbs -->
+  @if (steps().length > 1) {
+    <ol class="stepper">
+      @for (step of steps(); track step.id; let idx = $index) {
+        <li [class.active]="idx === currentStepIdx()" [class.done]="idx < currentStepIdx()">
+          <span class="num">{{ idx + 1 }}</span>
+          <span class="label">{{ step.title }}</span>
+        </li>
+      }
+    </ol>
+  }
+
+  @if (currentStep(); as step) {
+    <section class="step">
+      <h2>{{ step.title }}</h2>
+      <div class="fields">
+        @for (field of step.fields; track $index) {
+          @if (field.kind === 'title') {
+            <app-ex-title-field
+              [value]="title()"
+              (valueChange)="title.set($event)"
+              [label]="field.label"
+            />
+          } @else if (field.kind === 'taxonomy' && field.taxonomyKey && taxonomyTrees()[field.taxonomyKey]) {
+            <app-ex-taxonomy-field
+              [value]="selectedNodeByTaxonomy()[field.taxonomyKey] ?? ''"
+              (valueChange)="setTaxonomy(field.taxonomyKey, $event)"
+              [tree]="taxonomyTrees()[field.taxonomyKey]"
+            />
+          } @else if (field.kind === 'text' && field.property) {
+            <app-ex-text-field
+              [value]="payload()[field.property] ?? ''"
+              (valueChange)="setPayload(field.property, $event)"
+              [label]="field.label ?? field.property"
+              [rows]="field.rows"
+              [placeholder]="tr('submissions.abstract_placeholder')"
+            />
+          } @else if (field.kind === 'author-block') {
+            <app-ex-author-block
+              [value]="authorModel()"
+              (valueChange)="authorModel.set($event)"
+            />
+          } @else if (field.kind === 'affirmations' && slug()) {
+            <app-ex-affirmations-block
+              [value]="acceptedAffirmations()"
+              (valueChange)="acceptedAffirmations.set($event)"
+              [perAuthorAcceptance]="perAuthorAffirmations()"
+              (perAuthorAcceptanceChange)="perAuthorAffirmations.set($event)"
+              [conferenceSlug]="slug()"
+              [submissionType]="type()"
+            />
+          }
+        }
+      </div>
+    </section>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="actions">
+    <button type="button" class="btn" (click)="cancel()">{{ tr('common.cancel') }}</button>
+    @if (currentStepIdx() > 0) {
+      <button type="button" class="btn" (click)="prev()">{{ tr('submissions.wizard.back') }}</button>
+    }
+    @if (!isLastStep()) {
+      <button type="button" class="btn primary" (click)="next()">{{ tr('submissions.wizard.next') }}</button>
+    } @else {
+      <button type="button" class="btn primary" [disabled]="saving()" (click)="finish()">
+        {{ tr(saving() ? 'common.saving' : 'submissions.save_draft') }}
+      </button>
+    }
+  </div>
+
+  @if (screenerInput(); as s) {
+    <section class="result screener">
+      <h3>Novelty-screener input <small>— paste into the screener's box</small></h3>
+      <button type="button" class="btn" (click)="copyScreenerInput()">Copy</button>
+      <pre>{{ s | json }}</pre>
+    </section>
+  }
+
+  @if (result(); as r) {
+    <section class="result">
+      <h3>Assembled persistence payload <small>— sent to the submission API, not the screener</small></h3>
+      <pre>{{ r | json }}</pre>
+    </section>
+  }
+</section>

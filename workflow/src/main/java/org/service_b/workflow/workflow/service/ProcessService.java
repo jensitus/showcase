@@ -90,6 +90,12 @@ public class ProcessService {
     }
 
     @org.springframework.transaction.annotation.Transactional
+    public void deleteByResponsibleForId(UUID responsibleForId) {
+        processRepository.findByResponsibleForId(responsibleForId)
+                         .ifPresent(processRepository::delete);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
     public ProcessDto activateProcess(UUID responsibleForId, String processInstanceId, String processDefinitionId) {
         return processRepository.findByResponsibleForId(responsibleForId)
                                 .map(entity -> {

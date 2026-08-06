@@ -31,7 +31,7 @@ public class SubmissionController {
 
     @PostMapping
     public ResponseEntity<SubmissionDto> createSubmission(@RequestBody CreateSubmissionRequest request,
-                                                          Authentication authentication) throws Exception {
+                                                          Authentication authentication) {
         Submission submission = submissionWorkflowService.startSubmissionWorkflow(request, authentication.getName());
         SubmissionDto dto = toDto(submission);
         return ResponseEntity.ok(dto);

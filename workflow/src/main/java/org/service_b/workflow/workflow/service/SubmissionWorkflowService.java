@@ -7,6 +7,7 @@ import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.service.SubmissionService;
 import org.service_b.workflow.workflow.dto.ProcessInstanceWithVariableDto;
 import org.service_b.workflow.workflow.dto.TaskDto;
+import org.service_b.workflow.workflow.exception.ProcessStartException;
 import org.service_b.workflow.shared.utils.HashMapConverter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class SubmissionWorkflowService {
     private final ProcessService processService;
     private final HashMapConverter hashMapConverter;
 
-    public Submission startSubmissionWorkflow(CreateSubmissionRequest request, String createdBy) throws Exception {
+    public Submission startSubmissionWorkflow(CreateSubmissionRequest request, String createdBy) {
         // 1. Save submission — commits immediately (no outer transaction)
         Submission submission = submissionService.saveSubmission(
                 request.getTitle(),
@@ -49,10 +50,17 @@ public class SubmissionWorkflowService {
         // 3. Start the process in CIB Seven. CIB Seven may immediately call back POST /api/tasks
         //    for ut_receive_submission before this call returns — the pre-created entity handles that.
         StartProcessBody startProcessBody = buildStartProcessBody(request, submission);
-        ProcessInstanceWithVariableDto processInstance =
-                restClientService.startCib7Process(SUBMISSION_PROCESS_DEFINITION_KEY,
-                                                   startProcessBody,
-                                                   SUBMISSION_TENANT_ID);
+        ProcessInstanceWithVariableDto processInstance;
+        try {
+            processInstance = restClientService.startCib7Process(SUBMISSION_PROCESS_DEFINITION_KEY,
+                                                                 startProcessBody,
+                                                                 SUBMISSION_TENANT_ID);
+        } catch (Exception e) {
+            log.error("Failed to start CIB Seven process for submission {}, rolling back: {}", submission.getId(), e.getMessage());
+            processService.deleteByResponsibleForId(submission.getId());
+            submissionService.deleteSubmission(submission.getId());
+            throw new ProcessStartException("Failed to start submission process in workflow engine: " + e.getMessage(), e);
+        }
 
         // 4. Now update the pre-created entity with the real processInstanceId + definitionId.
         log.info("Started submission process instance: {}", processInstance);
