@@ -1,0 +1,108 @@
+<section class="wrap">
+  <header class="head">
+    <div>
+      <h1>Abstract Novelty Screening</h1>
+      <p class="sub">Submissions screened against the historical corpus — triage evidence for reviewers, never an automatic decision.</p>
+    </div>
+    @if (batches().length > 0) {
+      <label class="picker">
+        <span>Batch</span>
+        <select [ngModel]="selectedId()" (ngModelChange)="onSelect($event)">
+          @for (b of batches(); track b.batchId) {
+            <option [value]="b.batchId">{{ b.batchId }} — {{ b.flagged }}/{{ b.total }} flagged</option>
+          }
+        </select>
+      </label>
+    }
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (detail(); as d) {
+    <!-- KPI tiles -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-value">{{ d.total }}</div>
+        <div class="kpi-label">Screened</div>
+      </div>
+      <div class="kpi accent">
+        <div class="kpi-value">{{ d.flagged }}</div>
+        <div class="kpi-label">Flagged for review</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">{{ flagRate() }}%</div>
+        <div class="kpi-label">Flag rate</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value" [style.color]="color('likely_duplicate')">{{ duplicates() }}</div>
+        <div class="kpi-label">Likely duplicates</div>
+      </div>
+    </div>
+
+    <!-- Verdict composition -->
+    <div class="panel">
+      <h2>Verdict breakdown</h2>
+      <div class="bar" role="img" aria-label="Verdict composition">
+        @for (s of segments(); track s.verdict) {
+          <div class="seg" [style.width.%]="s.pct" [style.background]="s.color"
+               [title]="s.label + ': ' + s.count">
+            @if (s.pct > 8) { <span>{{ s.count }}</span> }
+          </div>
+        }
+      </div>
+      <ul class="legend">
+        @for (s of segments(); track s.verdict) {
+          <li><span class="swatch" [style.background]="s.color"></span>{{ s.label }} <strong>{{ s.count }}</strong></li>
+        }
+      </ul>
+    </div>
+
+    <!-- Flagged table -->
+    <div class="panel">
+      <h2>Flagged submissions <span class="count">({{ d.rows.length }})</span></h2>
+      @if (d.rows.length === 0) {
+        <p class="empty">Nothing flagged in this batch.</p>
+      } @else {
+        <table class="flagged">
+          <thead>
+            <tr>
+              <th>Submission</th>
+              <th>Verdict</th>
+              <th class="num">Sim.</th>
+              <th>Closest prior abstract</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of d.rows; track r.submissionId) {
+              <tr>
+                <td class="title">{{ r.title }}</td>
+                <td>
+                  <span class="badge" [style.--c]="color(r.verdict)">{{ label(r.verdict) }}</span>
+                </td>
+                <td class="num">{{ r.similarity }}</td>
+                <td class="prior">{{ r.matchedPriorTitle }}<span class="year"> · {{ r.matchedYear }}</span></td>
+                <td class="why">
+                  <button type="button" class="link" (click)="toggle(r.submissionId)">
+                    {{ isExpanded(r.submissionId) ? 'Hide' : 'Why?' }}
+                  </button>
+                </td>
+              </tr>
+              @if (isExpanded(r.submissionId)) {
+                <tr class="rationale-row">
+                  <td colspan="5"><div class="rationale">{{ r.rationale }}</div></td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  } @else if (loading()) {
+    <p class="empty">Loading…</p>
+  } @else if (batches().length === 0) {
+    <p class="empty">No screening batches yet. Start one via <code>POST /api/screening/batch</code>.</p>
+  }
+</section>

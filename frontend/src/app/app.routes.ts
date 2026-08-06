@@ -24,7 +24,7 @@ import {AdminUsersComponent} from "./admin/admin-users/admin-users.component";
 import {SubmitAbstractComponent} from "./submission/submit-abstract/submit-abstract.component";
 import {SubmissionListComponent} from "./submission/submission-list/submission-list.component";
 import {InsuranceShowcaseComponent} from "./insurance/insurance-showcase/insurance-showcase.component";
-import {ExampleSubmissionComponent} from "./example-submission/example-submission.component";
+import {ScreeningDashboardComponent} from "./screening/screening-dashboard.component";
 
 export const routes: Routes = [
     {path: '', component: HomeComponent},
@@ -51,5 +51,5 @@ export const routes: Routes = [
     {path: 'submissions', component: SubmissionListComponent},
     {path: 'submit-abstract', component: SubmitAbstractComponent},
     {path: 'insurance-showcase', component: InsuranceShowcaseComponent},
-    {path: 'example-submission', component: ExampleSubmissionComponent},
+    {path: 'screening', component: ScreeningDashboardComponent},
 ];
