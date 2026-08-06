@@ -27,4 +27,6 @@ public class NoveltyProperties {
     private long pollIntervalMs = 3_000;
     /** Max time to wait for a single chunk before giving up (incident + resume later). */
     private long chunkMaxWaitMs = 1_800_000;  // 30 min
+    /** Committee address that receives the completion summary. Empty = log only. */
+    private String committeeEmail = "";
 }

@@ -6,6 +6,7 @@ import org.service_b.workflow.screening.config.NoveltyProperties;
 import org.service_b.workflow.screening.dto.BatchSummary;
 import org.service_b.workflow.screening.dto.ScreenOutcome;
 import org.service_b.workflow.screening.dto.Submission;
+import org.service_b.workflow.shared.service.MailService;
 import org.service_b.workflow.workflow.config.CibSevenProperties;
 import org.service_b.workflow.workflow.config.ExternalTaskConfig;
 import org.service_b.workflow.workflow.dto.FetchAndLock;
@@ -49,6 +50,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
     private final ReportService reportService;
     private final ChunkScreeningService chunkScreeningService;
     private final RestTemplate restTemplate;
+    private final MailService mailService;
     private final Map<String, ExternalTaskConfig.TaskDefinition> taskDefinitions;
 
     public ScreeningBatchService(FetchAndLockService fetchAndLockService,
@@ -59,7 +61,8 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
                                  IngestService ingestService,
                                  ReportService reportService,
                                  ChunkScreeningService chunkScreeningService,
-                                 RestTemplate restTemplate) {
+                                 RestTemplate restTemplate,
+                                 MailService mailService) {
         super(fetchAndLockService, cibSevenProperties, cibSevenRestClient);
         this.noveltyApiClient = noveltyApiClient;
         this.noveltyProperties = noveltyProperties;
@@ -67,6 +70,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
         this.reportService = reportService;
         this.chunkScreeningService = chunkScreeningService;
         this.restTemplate = restTemplate;
+        this.mailService = mailService;
         this.taskDefinitions = initializeTaskDefinitions();
     }
 
@@ -191,9 +195,47 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
 
     /** Notify the committee: how many flagged of how many, and where the report is. */
     private Map<String, Object> handleNotify(Map<String, Map<String, Object>> variables) {
-        Integer flagged = 0;  // TODO read from vars
-        log.info("[novelty_batch] notify committee: {} flagged", flagged);
-        // TODO: send a summary (mail/SSE) with the report link.
+        String batchId = strVar(variables, "batchId");
+        int total = intVar(variables, "total");
+        int flagged = intVar(variables, "flaggedCount");
+        String reportPath = strVar(variables, "reportPath");
+        String to = noveltyProperties.getCommitteeEmail();
+        if (to != null && !to.isBlank()) {
+            mailService.send(to, "Abstract novelty screening complete — " + flagged + " flagged for review",
+                    buildSummaryEmail(total, flagged, reportPath));
+            log.info("[novelty_batch] notified {}: {}/{} flagged (batch {})", to, flagged, total, batchId);
+        } else {
+            log.info("[novelty_batch] batch {} complete: {}/{} flagged, report at {} (set novelty.committee-email to send)",
+                    batchId, flagged, total, reportPath);
+        }
         return new HashMap<>();
+    }
+
+    private String buildSummaryEmail(int total, int flagged, String reportPath) {
+        return String.format("""
+                <html><body style="font-family: Arial, sans-serif; max-width: 600px;">
+                  <h2>Abstract novelty screening complete</h2>
+                  <p>Screened <strong>%d</strong> submissions against the historical corpus.
+                     <strong>%d</strong> were flagged as possible overlap or likely duplicate and
+                     are listed, most-suspicious first, in the attached report.</p>
+                  <p>Report: <code>%s</code></p>
+                  <p style="color:#555;">This is triage evidence for human reviewers — never an
+                     automatic accept/reject.</p>
+                </body></html>
+                """, total, flagged, reportPath);
+    }
+
+    /** Read an integer process variable (CIB Seven returns {value, type}). */
+    private int intVar(Map<String, Map<String, Object>> variables, String key) {
+        Map<String, Object> v = variables.get(key);
+        Object value = v == null ? null : v.get("value");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        try {
+            return value == null ? 0 : Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
