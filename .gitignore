@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Screening run artefacts ###
+# Runtime output, not source: submissions.jsonl, results.jsonl, results.json and the
+# committee flagged.csv, one directory per batch. For real congress batches these hold
+# unpublished abstract titles, full abstract text and reviewers internal rationale
+# prose; this repo is public, so they must never be committed. The dashboard reads them
+# straight off the filesystem, so nothing in git needs them.
+#
+# Two locations because novelty.work-dir resolves against the app CWD: the repo root
+# when started from here, workflow/ when started the documented way (see
+# SCREENING_RUNBOOK.md). workflow/.gitignore covers the second one.
+data/
