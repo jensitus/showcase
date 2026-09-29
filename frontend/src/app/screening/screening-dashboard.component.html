@@ -41,6 +41,13 @@
       </div>
     </div>
 
+    @if (scope()) {
+      <p class="scope">
+        Screened against <strong>{{ scope() }}</strong> — each submission was compared only
+        with work that existed before it, so nothing here can match itself.
+      </p>
+    }
+
     <!-- Verdict composition -->
     <div class="panel">
       <h2>Verdict breakdown</h2>
@@ -76,7 +83,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (r of d.rows; track r.submissionId) {
+            @for (r of visibleRows(); track r.submissionId) {
               <tr>
                 <td class="title">{{ r.title }}</td>
                 <td>
@@ -98,6 +105,13 @@
             }
           </tbody>
         </table>
+        @if (hasMore()) {
+          <div class="more">
+            <span>Showing {{ visibleRows().length }} of {{ d.rows.length }}, most suspicious first.</span>
+            <button type="button" class="link" (click)="showMore()">Show 50 more</button>
+            <button type="button" class="link" (click)="showAll()">Show all {{ d.rows.length }}</button>
+          </div>
+        }
       }
     </div>
   } @else if (loading()) {

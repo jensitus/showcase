@@ -45,12 +45,17 @@ public class ChunkScreeningService {
      * @param lockKeepAlive called after each chunk (and while polling) to extend the
      *                      external-task lock so a multi-hour run doesn't lose it.
      */
-    public ScreenOutcome run(String batchId, Path submissionsPath, Path resultsPath, Runnable lockKeepAlive)
+    public ScreenOutcome run(String batchId, Path submissionsPath, Path resultsPath,
+                            Runnable lockKeepAlive, String corpus, Integer beforeYear)
             throws IOException, InterruptedException {
         List<Submission> submissions = readSubmissions(submissionsPath);
         List<List<Submission>> chunks = partition(submissions, props.getChunkSize());
-        log.info("[screen] batch {}: {} submissions in {} chunks of {}",
-                batchId, submissions.size(), chunks.size(), props.getChunkSize());
+        log.info("[screen] batch {}: {} submissions in {} chunks of {} (corpus={}, beforeYear={})",
+                batchId, submissions.size(), chunks.size(), props.getChunkSize(),
+                corpus == null ? "pipeline default" : corpus,
+                beforeYear == null ? "none" : beforeYear);
+
+        dropUnaccountedResults(batchId, resultsPath);
 
         for (int i = 0; i < chunks.size(); i++) {
             if (chunkRepo.existsByBatchIdAndChunkNoAndStatus(batchId, i, ScreeningChunk.DONE)) {
@@ -58,7 +63,7 @@ public class ChunkScreeningService {
                 continue;
             }
             List<Submission> chunk = chunks.get(i);
-            ScreenResponse job = client.screenBatch(chunk);
+            ScreenResponse job = client.screenBatch(chunk, corpus, beforeYear);
             JobStatus status = pollUntilDone(job.getJobId(), lockKeepAlive);
             appendResults(resultsPath, status.getResults());
             markDone(batchId, i, chunk.size());
@@ -74,6 +79,10 @@ public class ChunkScreeningService {
         long deadline = System.currentTimeMillis() + props.getChunkMaxWaitMs();
         while (true) {
             JobStatus status = client.getJob(jobId);
+            if (status != null && status.isError()) {
+                throw new IllegalStateException("screening job " + jobId + " failed in the "
+                        + "pipeline: " + status.getError());
+            }
             if (status != null && status.isDone()) {
                 return status;
             }
@@ -97,6 +106,36 @@ public class ChunkScreeningService {
         }
         Files.writeString(resultsPath, sb.toString(),
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
+    /**
+     * Discard result lines that no completed chunk accounts for.
+     *
+     * <p>Results are appended and only then checkpointed, so a crash in that window
+     * leaves a chunk's rows in the file with no DONE row to match. Resume would screen
+     * that chunk again and append its rows a second time, double-counting the batch and
+     * putting duplicate submissions in the report. Truncating to the number of rows the
+     * checkpoints do account for makes the file and the checkpoints agree again.
+     *
+     * <p>A no-op on a first run, and on a clean resume.
+     */
+    private void dropUnaccountedResults(String batchId, Path resultsPath) throws IOException {
+        if (!Files.exists(resultsPath)) {
+            return;
+        }
+        int accounted = chunkRepo.findByBatchIdAndStatus(batchId, ScreeningChunk.DONE).stream()
+                .mapToInt(ScreeningChunk::getScreenedCount)
+                .sum();
+        List<String> lines = Files.readAllLines(resultsPath).stream()
+                .filter(l -> !l.isBlank())
+                .toList();
+        if (lines.size() <= accounted) {
+            return;
+        }
+        log.warn("[screen] batch {}: {} result line(s) belong to no completed chunk "
+                 + "(interrupted mid-chunk?) — discarding them before resuming",
+                batchId, lines.size() - accounted);
+        Files.write(resultsPath, lines.subList(0, accounted));
     }
 
     private void markDone(String batchId, int chunkNo, int count) {

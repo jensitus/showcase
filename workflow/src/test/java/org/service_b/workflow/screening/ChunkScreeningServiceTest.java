@@ -63,7 +63,7 @@ class ChunkScreeningServiceTest {
         NoveltyApiClient client = mock(NoveltyApiClient.class);
         ScreenResponse resp = new ScreenResponse();
         resp.setJobId("j");
-        when(client.screenBatch(any())).thenReturn(resp);
+        when(client.screenBatch(any(), any(), any())).thenReturn(resp);
         when(client.getJob(anyString())).thenReturn(doneJob("likely_duplicate"));
 
         ScreeningChunkRepository repo = mock(ScreeningChunkRepository.class);
@@ -71,13 +71,40 @@ class ChunkScreeningServiceTest {
         when(repo.findByBatchIdAndChunkNo(anyString(), anyInt())).thenReturn(java.util.Optional.empty());
 
         ChunkScreeningService svc = new ChunkScreeningService(client, repo, props(), mapper);
-        ScreenOutcome outcome = svc.run("b1", subs, results, () -> { });
+        ScreenOutcome outcome = svc.run("b1", subs, results, () -> { }, null, null);
 
         assertEquals(3, outcome.screened());
         assertEquals(2, outcome.flagged());                 // 2 chunks x 1 flagged result
         assertEquals(2, Files.readAllLines(results).size());
-        verify(client, times(2)).screenBatch(any());        // one call per chunk
+        verify(client, times(2)).screenBatch(any(), any(), any());        // one call per chunk
         verify(repo, times(2)).save(any(ScreeningChunk.class));
+    }
+
+    @Test
+    void passesCorpusAndCutoffToTheClient(@TempDir Path dir) throws Exception {
+        // The whole point of the feature: if corpus or beforeYear is dropped anywhere
+        // between the trigger and the HTTP call, a congress is screened against a corpus
+        // containing itself and every abstract comes back a duplicate of itself. The
+        // pipeline cannot tell us that happened, so assert it here.
+        Path subs = dir.resolve("submissions.jsonl");
+        Path results = dir.resolve("results.jsonl");
+        writeSubs(subs, 2);  // chunkSize 2 -> exactly one chunk
+
+        NoveltyApiClient client = mock(NoveltyApiClient.class);
+        ScreenResponse resp = new ScreenResponse();
+        resp.setJobId("j");
+        resp.setBeforeYear(2026);
+        when(client.screenBatch(any(), any(), any())).thenReturn(resp);
+        when(client.getJob(anyString())).thenReturn(doneJob("likely_novel"));
+
+        ScreeningChunkRepository repo = mock(ScreeningChunkRepository.class);
+        when(repo.existsByBatchIdAndChunkNoAndStatus(anyString(), anyInt(), anyString())).thenReturn(false);
+        when(repo.findByBatchIdAndChunkNo(anyString(), anyInt())).thenReturn(java.util.Optional.empty());
+
+        ChunkScreeningService svc = new ChunkScreeningService(client, repo, props(), mapper);
+        svc.run("b1", subs, results, () -> { }, "congress-A2", 2026);
+
+        verify(client).screenBatch(any(), eq("congress-A2"), eq(2026));
     }
 
     @Test
@@ -89,7 +116,7 @@ class ChunkScreeningServiceTest {
         NoveltyApiClient client = mock(NoveltyApiClient.class);
         ScreenResponse resp = new ScreenResponse();
         resp.setJobId("j");
-        when(client.screenBatch(any())).thenReturn(resp);
+        when(client.screenBatch(any(), any(), any())).thenReturn(resp);
         when(client.getJob(anyString())).thenReturn(doneJob("possible_overlap"));
 
         ScreeningChunkRepository repo = mock(ScreeningChunkRepository.class);
@@ -98,9 +125,9 @@ class ChunkScreeningServiceTest {
         when(repo.findByBatchIdAndChunkNo(anyString(), anyInt())).thenReturn(java.util.Optional.empty());
 
         ChunkScreeningService svc = new ChunkScreeningService(client, repo, props(), mapper);
-        svc.run("b1", subs, results, () -> { });
+        svc.run("b1", subs, results, () -> { }, null, null);
 
-        verify(client, times(1)).screenBatch(any());   // only chunk 1 screened
+        verify(client, times(1)).screenBatch(any(), any(), any());   // only chunk 1 screened
         verify(repo, times(1)).save(any(ScreeningChunk.class));
     }
 }

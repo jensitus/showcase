@@ -68,7 +68,32 @@ public class ScreeningResultsService {
             counts.merge(String.valueOf(r.get("verdict")), 1, Integer::sum);
         }
         List<FlaggedRow> rows = readFlagged(dir.resolve("flagged.csv"));
-        return new BatchDetail(batchId, reports.size(), rows.size(), counts, rows);
+        return new BatchDetail(batchId, reports.size(), rows.size(), counts, rows,
+                cutoffOf(reports));
+    }
+
+    /**
+     * The year cutoff the batch was screened under, read back off the reports.
+     *
+     * <p>Taken from the results rather than from a run parameter on purpose: what a
+     * reader needs to trust is what the pipeline actually applied, not what someone
+     * intended to ask for. A batch with mixed values would be a bug, so the first
+     * non-null wins and a disagreement is logged rather than silently averaged away.
+     */
+    private Integer cutoffOf(List<Map<String, Object>> reports) {
+        Integer first = null;
+        for (Map<String, Object> r : reports) {
+            Object v = r.get("before_year");
+            Integer here = v instanceof Number n ? n.intValue() : null;
+            if (first == null) {
+                first = here;
+            } else if (here != null && !first.equals(here)) {
+                log.warn("batch has mixed before_year values ({} and {}) — showing {}",
+                        first, here, first);
+                break;
+            }
+        }
+        return first;
     }
 
     private List<FlaggedRow> readFlagged(Path csv) throws IOException {

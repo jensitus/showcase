@@ -55,6 +55,14 @@ public class ScreeningController {
     public ResponseEntity<Map<String, String>> startBatch(@RequestBody StartBatchRequest request) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("exportPath", Map.of("value", request.getExportPath(), "type", "String"));
+        // Only set when supplied, so a batch without a cutoff carries no beforeYear
+        // variable at all and the screen worker reads null rather than a stray 0.
+        if (request.getBeforeYear() != null) {
+            variables.put("beforeYear", Map.of("value", request.getBeforeYear(), "type", "Integer"));
+        }
+        if (request.getCorpus() != null && !request.getCorpus().isBlank()) {
+            variables.put("corpus", Map.of("value", request.getCorpus(), "type", "String"));
+        }
 
         StartProcessBody body = new StartProcessBody();
         body.setVariables(variables);
@@ -62,7 +70,9 @@ public class ScreeningController {
 
         ProcessInstanceWithVariableDto process =
                 restClientService.startCib7Process("novelty_batch", body, noveltyProperties.getTenant());
-        log.info("[novelty_batch] started process {} for export {}", process.getId(), request.getExportPath());
+        log.info("[novelty_batch] started process {} for export {} (beforeYear={})",
+                process.getId(), request.getExportPath(),
+                request.getBeforeYear() == null ? "none" : request.getBeforeYear());
 
         return ResponseEntity.ok(Map.of("processInstanceId", process.getId()));
     }

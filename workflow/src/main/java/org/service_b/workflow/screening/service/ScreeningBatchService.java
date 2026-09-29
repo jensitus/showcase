@@ -125,7 +125,9 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
                     batchId,
                     workDir.resolve("submissions.jsonl"),
                     workDir.resolve("results.jsonl"),
-                    () -> extendLock(taskId));
+                    () -> extendLock(taskId),
+                    strVarOrNull(response.getVariables(), "corpus"),
+                    integerVar(response.getVariables(), "beforeYear"));
             Map<String, Object> out = new HashMap<>();
             out.put("screened", outcome.screened());
             out.put("flagged", outcome.flagged());
@@ -226,6 +228,38 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
     }
 
     /** Read an integer process variable (CIB Seven returns {value, type}). */
+    /**
+     * Like {@link #intVar} but null when the variable is absent.
+     *
+     * <p>Required for beforeYear specifically: intVar returns 0 for a missing variable,
+     * and a cutoff of 0 means "compare only against years before 0", i.e. an empty
+     * corpus in which every abstract is trivially novel. Absent must mean "no cutoff",
+     * not "cutoff at zero".
+     */
+    /** A string process variable, or null when absent (strVar returns "" instead). */
+    private String strVarOrNull(Map<String, Map<String, Object>> variables, String key) {
+        Map<String, Object> v = variables.get(key);
+        Object value = v == null ? null : v.get("value");
+        return value == null || value.toString().isBlank() ? null : value.toString();
+    }
+
+    private Integer integerVar(Map<String, Map<String, Object>> variables, String key) {
+        Map<String, Object> v = variables.get(key);
+        Object value = v == null ? null : v.get("value");
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        try {
+            return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            log.warn("[novelty_batch] variable {} is not an integer: {}", key, value);
+            return null;
+        }
+    }
+
     private int intVar(Map<String, Map<String, Object>> variables, String key) {
         Map<String, Object> v = variables.get(key);
         Object value = v == null ? null : v.get("value");

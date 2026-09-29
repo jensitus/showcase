@@ -71,6 +71,16 @@ showcase:
 novelty:
   # Novelty pipeline API on the Spark. Demo: via the SSH tunnel (local 8090 -> Spark 8080).
   # Real run: a direct network path to the Spark.
+  #
+  # 8090 serves the PubMed corpora, 8092 the congress ones. A congress batch needs 8092
+  # AND an explicit "corpus" in the trigger; the default is left at 8090 so the
+  # documented synthetic demo keeps working unchanged. Getting this pair wrong fails
+  # loudly (400 unknown corpus) rather than screening against the wrong thing:
+  #   NOVELTY_API_BASE_URL=http://localhost:8092  + {"corpus":"congress-A2"}
   api-base-url: ${NOVELTY_API_BASE_URL:http://localhost:8090}
-  chunk-size: ${NOVELTY_CHUNK_SIZE:500}
+  # 50, not 500. The pipeline screens ~0.5-0.6/s, so a 500-chunk takes ~15 min during
+  # which the dashboard shows nothing and any failure re-screens all 500. At 50, results
+  # append about every 90s so progress is visible, a failure is cheap, and the 30-minute
+  # per-chunk deadline goes from ~3x headroom to ~20x.
+  chunk-size: ${NOVELTY_CHUNK_SIZE:50}
   tenant: ${NOVELTY_TENANT:screening}

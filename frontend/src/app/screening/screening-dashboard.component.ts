@@ -47,6 +47,31 @@ export class ScreeningDashboardComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly expanded = signal<Set<string>>(new Set());
 
+  // A full congress is ~10k submissions and ~2.4k flagged rows. Rendering them all in
+  // one pass freezes the page and buries the rows that matter, and the table is already
+  // sorted most-suspicious first — so show a page at a time.
+  private static readonly PAGE = 50;
+  readonly shown = signal(ScreeningDashboardComponent.PAGE);
+
+  readonly visibleRows = computed(() => this.detail()?.rows.slice(0, this.shown()) ?? []);
+  readonly hasMore = computed(() => (this.detail()?.rows.length ?? 0) > this.shown());
+  readonly remaining = computed(() =>
+    Math.max(0, (this.detail()?.rows.length ?? 0) - this.shown()),
+  );
+
+  /** "before 2026", or null when the batch carried no cutoff. */
+  readonly scope = computed(() => {
+    const y = this.detail()?.beforeYear;
+    return y ? `only abstracts published before ${y}` : null;
+  });
+
+  showMore(): void {
+    this.shown.update((n) => n + ScreeningDashboardComponent.PAGE);
+  }
+  showAll(): void {
+    this.shown.set(this.detail()?.rows.length ?? ScreeningDashboardComponent.PAGE);
+  }
+
   readonly flagRate = computed(() => {
     const d = this.detail();
     return d && d.total ? Math.round((d.flagged / d.total) * 100) : 0;
@@ -99,6 +124,8 @@ export class ScreeningDashboardComponent implements OnInit {
     this.service.getBatch(id).subscribe({
       next: (d) => {
         this.detail.set(d);
+        this.shown.set(ScreeningDashboardComponent.PAGE);   // new batch, start at page 1
+        this.expanded.set(new Set());
         this.loading.set(false);
       },
       error: () => {

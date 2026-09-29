@@ -21,4 +21,10 @@ export interface BatchDetail {
   flagged: number;
   verdictCounts: Record<string, number>;
   rows: FlaggedRow[];
+  /**
+   * Year cutoff the batch was screened under, or null when there was none. Derived by
+   * the API from the reports themselves. Changes what every other number on the page
+   * means, so it is displayed rather than assumed.
+   */
+  beforeYear: number | null;
 }
