@@ -190,7 +190,12 @@ public class SubmissionWorkflowService {
         }
         SubmissionNovelty n = found.get();
         if (n.getStatus() == SubmissionNovelty.Status.UNAVAILABLE) {
-            out.put("Status", "Not checked — the novelty pipeline was unavailable");
+            out.put("Status", n.getVerdict() == null
+                    ? "Not checked — the novelty pipeline was unavailable"
+                    : "Incomplete — screened, but the larger model was unavailable");
+            if (n.getVerdict() != null) {
+                out.put("Screening (PubMed)", VERDICT_LABEL.getOrDefault(n.getVerdict(), n.getVerdict()));
+            }
             out.put("Error", n.getError());
             return out;
         }

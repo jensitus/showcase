@@ -123,6 +123,25 @@ public class CibSevenRestClient {
     }
 
     /**
+     * Throw a BPMN error from an external task: the process takes the matching error path
+     * (a boundary or an error event subprocess) instead of waiting as an incident.
+     */
+    public void handleBpmnError(String taskId, String errorCode, String errorMessage) {
+        String url = cibSevenProperties.getBaseUrl() + "/external-task/" + taskId + "/bpmnError";
+        Map<String, Object> body = new HashMap<>();
+        body.put("workerId", cibSevenProperties.getWorkerId());
+        body.put("errorCode", errorCode);
+        body.put("errorMessage", errorMessage);
+        try {
+            restTemplate.postForEntity(url, body, Void.class);
+            log.warn("Threw BPMN error {} for task {}: {}", errorCode, taskId, errorMessage);
+        } catch (Exception e) {
+            log.error("Failed to throw BPMN error for {}: {}", taskId, e.getMessage());
+            throw new CamundaApiException("Failed to throw BPMN error: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Create a Camunda variable with proper type detection
      */
     private CamundaVariable createCamundaVariable(Object value) {

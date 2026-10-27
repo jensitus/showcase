@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,49 +66,84 @@ class NoveltyCheckServiceTest {
         when(client.getAskJob("j")).thenReturn(s);
     }
 
+    /** The row as screen() saved it, served back to the next step. */
+    private void stored() {
+        when(repository.findBySubmissionId(submission.getId())).thenAnswer(inv -> Optional.ofNullable(saved));
+        when(repository.save(any())).thenAnswer(inv -> saved = inv.getArgument(0));
+    }
+
+    private SubmissionNovelty saved;
+
     @Test
-    void screeningFlagsIt_theLargerModelIsNotAsked() throws Exception {
+    void screeningFlagsIt_theCheckIsComplete() {
         screening("possible_overlap");
 
-        SubmissionNovelty n = service.check(submission, () -> { });
+        SubmissionNovelty n = service.screen(submission);
 
+        assertThat(n.getStatus()).isEqualTo(SubmissionNovelty.Status.DONE);
         assertThat(n.getFlagged()).isTrue();
-        assertThat(n.getAddsNew()).isNull();
         assertThat(n.getResultJson()).contains("\"novelty_q\":null");
         verify(client, never()).askNew(any());
     }
 
     @Test
     void screeningLetsItThrough_theLargerModelDecides() throws Exception {
+        stored();
         screening("likely_novel");
+        SubmissionNovelty screened = service.screen(submission);
+        assertThat(screened.getStatus()).isEqualTo(SubmissionNovelty.Status.SCREENED);
+        assertThat(screened.getFlagged()).isFalse();
+
         answer(Map.of("key", "x", "adds_new", "partly", "adds_what", "A slightly larger cohort."));
+        SubmissionNovelty n = service.ask(submission, () -> { });
 
-        SubmissionNovelty partly = service.check(submission, () -> { });
-        assertThat(partly.getStatus()).isEqualTo(SubmissionNovelty.Status.DONE);
-        assertThat(partly.getAddsNew()).isEqualTo("partly");
-        assertThat(partly.getFlagged()).isTrue();                 // "partly" counts as flagged
-
-        answer(Map.of("key", "x", "adds_new", "yes", "adds_what", "A new method."));
-        assertThat(service.check(submission, () -> { }).getFlagged()).isFalse();
+        assertThat(n.getStatus()).isEqualTo(SubmissionNovelty.Status.DONE);
+        assertThat(n.getAddsNew()).isEqualTo("partly");
+        assertThat(n.getFlagged()).isTrue();                      // "partly" counts as flagged
+        assertThat(n.getResultJson()).contains("likely_novel").contains("A slightly larger cohort.");
     }
 
     @Test
-    void anAlreadyCheckedSubmissionIsNotSentAgain() throws Exception {
-        SubmissionNovelty done = new SubmissionNovelty();
-        done.setStatus(SubmissionNovelty.Status.DONE);
-        when(repository.findBySubmissionId(submission.getId())).thenReturn(Optional.of(done));
+    void theLargerModelSayingYesLeavesItUnflagged() throws Exception {
+        stored();
+        screening("likely_novel");
+        service.screen(submission);
+        answer(Map.of("key", "x", "adds_new", "yes", "adds_what", "A new method."));
 
-        assertThat(service.check(submission, () -> { })).isSameAs(done);
-        verify(client, never()).check(anyString(), anyString(), anyString());
+        assertThat(service.ask(submission, () -> { }).getFlagged()).isFalse();
+    }
+
+    @Test
+    void aScreenedSubmissionIsNotSentAgain() {
+        stored();
+        screening("possible_overlap");
+        service.screen(submission);
+        service.screen(submission);                               // a re-fetched task
+
+        verify(client, times(1)).check(anyString(), anyString(), anyString());
     }
 
     @Test
     void aFailedAnswerIsThrownSoTheWorkerRetries() {
+        stored();
         screening("likely_novel");
+        service.screen(submission);
         answer(Map.of("key", "x", "error", "TimeoutError"));
 
-        assertThatThrownBy(() -> service.check(submission, () -> { }))
-                .hasMessageContaining("TimeoutError");
-        verify(repository, never()).save(any());
+        assertThatThrownBy(() -> service.ask(submission, () -> { })).hasMessageContaining("TimeoutError");
+        assertThat(saved.getStatus()).isEqualTo(SubmissionNovelty.Status.SCREENED);   // nothing half-written
+    }
+
+    @Test
+    void unavailableAfterScreeningKeepsTheVerdict() {
+        stored();
+        screening("likely_novel");
+        service.screen(submission);
+
+        SubmissionNovelty n = service.markUnavailable(submission, "Connection refused");
+
+        assertThat(n.getStatus()).isEqualTo(SubmissionNovelty.Status.UNAVAILABLE);
+        assertThat(n.getVerdict()).isEqualTo("likely_novel");
+        assertThat(n.getError()).isEqualTo("Connection refused");
     }
 }

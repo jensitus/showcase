@@ -111,10 +111,10 @@
     <bpmn:sequenceFlow id="Flow_Receive_to_Valid" sourceRef="ut_receive_submission" targetRef="Gateway_SubmissionValid">
       <bpmn:categoryValueRef>CatVal_Group_Stage1</bpmn:categoryValueRef>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Valid_Yes" name="Valid" sourceRef="Gateway_SubmissionValid" targetRef="st_novelty_check">
+    <bpmn:sequenceFlow id="Flow_Valid_Yes" name="Valid" sourceRef="Gateway_SubmissionValid" targetRef="ca_novelty_check">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${submission_valid}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Novelty_to_Assign" sourceRef="st_novelty_check" targetRef="ut_assign_reviewers" />
+    <bpmn:sequenceFlow id="Flow_Novelty_to_Assign" sourceRef="ca_novelty_check" targetRef="ut_assign_reviewers" />
     <bpmn:sequenceFlow id="Flow_Valid_No" name="Invalid" sourceRef="Gateway_SubmissionValid" targetRef="EndEvent_InvalidSubmission">
       <bpmn:categoryValueRef>CatVal_Group_Stage1</bpmn:categoryValueRef>
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!submission_valid}</bpmn:conditionExpression>
@@ -237,12 +237,19 @@
       <bpmn:incoming>Flow_Inv_Accepted</bpmn:incoming>
       <bpmn:outgoing>Flow_Invited_to_Merge</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:serviceTask id="st_novelty_check" name="Novelty Check (PubMed + Larger Model)" camunda:type="external" camunda:topic="cfp_novelty_check">
-      <bpmn:documentation>The abstract goes to the novelty pipeline: screening against PubMed and, if that finds nothing, the larger model's "adds anything new?". The result is stored per submission and shown at Assign Reviewers. If the pipeline stays unreachable (3 retries, 5 min apart) the check is recorded as unavailable and the process goes on.</bpmn:documentation>
+    <bpmn:callActivity id="ca_novelty_check" name="Novelty Check" calledElement="novelty_check" camunda:calledElementTenantId="cfp">
+      <bpmn:documentation>Calls the novelty_check process (novelty-check.bpmn): screening against PubMed, then — if that finds nothing — the larger model's "adds anything new?". The result is stored per submission and shown at Assign Reviewers. If the pipeline stays unreachable the check is recorded as unavailable and the process goes on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:in source="submissionId" target="submissionId" />
+        <camunda:out source="novelty_status" target="novelty_status" />
+        <camunda:out source="novelty_verdict" target="novelty_verdict" />
+        <camunda:out source="novelty_adds_new" target="novelty_adds_new" />
+        <camunda:out source="novelty_flagged" target="novelty_flagged" />
+      </bpmn:extensionElements>
       <bpmn:categoryValueRef>CatVal_Group_Stage1</bpmn:categoryValueRef>
       <bpmn:incoming>Flow_Valid_Yes</bpmn:incoming>
       <bpmn:outgoing>Flow_Novelty_to_Assign</bpmn:outgoing>
-    </bpmn:serviceTask>
+    </bpmn:callActivity>
     <bpmn:userTask id="ut_assign_reviewers" name="Assign Reviewers (3–4 per Abstract)">
       <bpmn:categoryValueRef>CatVal_Group_Stage2</bpmn:categoryValueRef>
       <bpmn:incoming>Flow_Novelty_to_Assign</bpmn:incoming>
@@ -527,7 +534,7 @@
       <bpmndi:BPMNShape id="Activity_0d6vf8h_di" bpmnElement="ut_receive_invited_abstract">
         <dc:Bounds x="435" y="190" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="st_novelty_check_di" bpmnElement="st_novelty_check">
+      <bpmndi:BPMNShape id="ca_novelty_check_di" bpmnElement="ca_novelty_check">
         <dc:Bounds x="400" y="390" width="120" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1r8wq7f_di" bpmnElement="ut_assign_reviewers">

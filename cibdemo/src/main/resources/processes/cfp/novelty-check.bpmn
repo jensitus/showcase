@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_NoveltyCheck" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0">
+  <bpmn:error id="Error_PipelineUnavailable" name="Pipeline unavailable" errorCode="PIPELINE_UNAVAILABLE" />
+  <bpmn:process id="novelty_check" name="Novelty Check" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:documentation>Does a submitted abstract add anything new? Screening against PubMed finds similar earlier work; when it finds nothing, a larger language model is asked explicitly. "Nothing new" and "only partly new" count as flagged. Validated on a 2026 congress: 92.4% of the abstracts three or more reviewers called "not new" are flagged (screening alone: 64.8%). Input: submissionId. Output: novelty_status, novelty_verdict, novelty_adds_new, novelty_flagged.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_Check" name="Valid submission">
+      <bpmn:outgoing>Flow_Start_Screen</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="st_screen" name="Screen against PubMed" camunda:type="external" camunda:topic="novelty_check_screen">
+      <bpmn:documentation>Retrieval, reranking and a duplicate judge over all of PubMed: likely novel, possible overlap or likely duplicate.</bpmn:documentation>
+      <bpmn:incoming>Flow_Start_Screen</bpmn:incoming>
+      <bpmn:outgoing>Flow_Screen_Gateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_ScreeningFlagged" name="Flagged by screening?">
+      <bpmn:incoming>Flow_Screen_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Flagged_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Flagged_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="st_ask" name="Ask larger model: adds anything new?" camunda:type="external" camunda:topic="novelty_check_ask">
+      <bpmn:documentation>qwen3.6 35B in thinking mode, shown the 4 closest PubMed abstracts: yes, partly or no, with one sentence on why. About 40 s.</bpmn:documentation>
+      <bpmn:incoming>Flow_Flagged_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Ask_Join</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Join">
+      <bpmn:incoming>Flow_Ask_Join</bpmn:incoming>
+      <bpmn:incoming>Flow_Flagged_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Checked" name="Novelty checked">
+      <bpmn:incoming>Flow_Join_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Screen" sourceRef="StartEvent_Check" targetRef="st_screen" />
+    <bpmn:sequenceFlow id="Flow_Screen_Gateway" sourceRef="st_screen" targetRef="Gateway_ScreeningFlagged" />
+    <bpmn:sequenceFlow id="Flow_Flagged_No" name="No" sourceRef="Gateway_ScreeningFlagged" targetRef="st_ask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!novelty_screening_flagged}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Flagged_Yes" name="Yes" sourceRef="Gateway_ScreeningFlagged" targetRef="Gateway_Join">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${novelty_screening_flagged}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Ask_Join" sourceRef="st_ask" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_Join_End" sourceRef="Gateway_Join" targetRef="EndEvent_Checked" />
+    <bpmn:subProcess id="EventSub_Unavailable" name="Pipeline unavailable" triggeredByEvent="true">
+      <bpmn:documentation>A step gave up after its retries (3, five minutes apart): record that the check could not run, so the submission still goes on to Assign Reviewers and the chair sees why.</bpmn:documentation>
+      <bpmn:startEvent id="StartEvent_Unavailable" name="Pipeline unreachable">
+        <bpmn:outgoing>Flow_Unavailable_Record</bpmn:outgoing>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_Unavailable" errorRef="Error_PipelineUnavailable" camunda:errorMessageVariable="novelty_error" />
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="st_record_unavailable" name="Record check as unavailable" camunda:type="external" camunda:topic="novelty_check_unavailable">
+        <bpmn:incoming>Flow_Unavailable_Record</bpmn:incoming>
+        <bpmn:outgoing>Flow_Record_End</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="EndEvent_Unavailable" name="Check unavailable">
+        <bpmn:incoming>Flow_Record_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_Unavailable_Record" sourceRef="StartEvent_Unavailable" targetRef="st_record_unavailable" />
+      <bpmn:sequenceFlow id="Flow_Record_End" sourceRef="st_record_unavailable" targetRef="EndEvent_Unavailable" />
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_NoveltyCheck">
+    <bpmndi:BPMNPlane id="BPMNPlane_NoveltyCheck" bpmnElement="novelty_check">
+      <bpmndi:BPMNShape id="StartEvent_Check_di" bpmnElement="StartEvent_Check">
+        <dc:Bounds x="162" y="200" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="138" y="243" width="84" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_screen_di" bpmnElement="st_screen">
+        <dc:Bounds x="250" y="178" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ScreeningFlagged_di" bpmnElement="Gateway_ScreeningFlagged" isMarkerVisible="true">
+        <dc:Bounds x="430" y="193" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="410" y="156" width="90" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_ask_di" bpmnElement="st_ask">
+        <dc:Bounds x="540" y="178" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Join_di" bpmnElement="Gateway_Join" isMarkerVisible="true">
+        <dc:Bounds x="720" y="193" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Checked_di" bpmnElement="EndEvent_Checked">
+        <dc:Bounds x="832" y="200" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="810" y="243" width="80" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_Screen_di" bpmnElement="Flow_Start_Screen">
+        <di:waypoint x="198" y="218" /><di:waypoint x="250" y="218" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Screen_Gateway_di" bpmnElement="Flow_Screen_Gateway">
+        <di:waypoint x="370" y="218" /><di:waypoint x="430" y="218" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Flagged_No_di" bpmnElement="Flow_Flagged_No">
+        <di:waypoint x="480" y="218" /><di:waypoint x="540" y="218" />
+        <bpmndi:BPMNLabel><dc:Bounds x="502" y="200" width="15" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Flagged_Yes_di" bpmnElement="Flow_Flagged_Yes">
+        <di:waypoint x="455" y="243" /><di:waypoint x="455" y="310" /><di:waypoint x="745" y="310" /><di:waypoint x="745" y="243" />
+        <bpmndi:BPMNLabel><dc:Bounds x="462" y="270" width="19" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Ask_Join_di" bpmnElement="Flow_Ask_Join">
+        <di:waypoint x="660" y="218" /><di:waypoint x="720" y="218" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_End_di" bpmnElement="Flow_Join_End">
+        <di:waypoint x="770" y="218" /><di:waypoint x="832" y="218" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EventSub_Unavailable_di" bpmnElement="EventSub_Unavailable" isExpanded="true">
+        <dc:Bounds x="250" y="370" width="440" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Unavailable_di" bpmnElement="StartEvent_Unavailable">
+        <dc:Bounds x="292" y="427" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="270" y="470" width="80" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="st_record_unavailable_di" bpmnElement="st_record_unavailable">
+        <dc:Bounds x="400" y="405" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Unavailable_di" bpmnElement="EndEvent_Unavailable">
+        <dc:Bounds x="592" y="427" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="566" y="470" width="88" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Unavailable_Record_di" bpmnElement="Flow_Unavailable_Record">
+        <di:waypoint x="328" y="445" /><di:waypoint x="400" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Record_End_di" bpmnElement="Flow_Record_End">
+        <di:waypoint x="520" y="445" /><di:waypoint x="592" y="445" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

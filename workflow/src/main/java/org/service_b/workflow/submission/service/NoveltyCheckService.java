@@ -20,12 +20,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The novelty check of one valid submission, the process as validated on the Spark:
- * screening against PubMed, and — only when screening finds nothing — the larger model's
- * "adds anything new?". "Nothing new" and "only partly new" count as flagged.
+ * The steps of the novelty_check process, one per external task — the process as validated
+ * on the Spark: {@link #screen} against PubMed, and only when that finds nothing
+ * {@link #ask} the larger model "adds anything new?". "Nothing new" and "only partly new"
+ * count as flagged. Each step stores its part in the submission's submission_novelty row.
  *
- * <p>Engine concerns (lock, retries) stay with the caller: {@link #check} throws when the
- * pipeline fails, and the caller decides whether to retry or {@link #markUnavailable}.
+ * <p>Engine concerns (lock, retries, the BPMN error) stay with the workers: a step throws
+ * when the pipeline fails, and {@link #markUnavailable} records that it stayed unreachable.
  */
 @Service
 @RequiredArgsConstructor
@@ -40,57 +41,81 @@ public class NoveltyCheckService {
     private final ObjectMapper mapper;
 
     /**
-     * Check a submission and store the result. A submission already checked is not sent
-     * again (a re-fetched task after a crash between storing and completing).
-     *
-     * @param keepAlive called while waiting for the larger model, to keep the task's lock
+     * Screen against PubMed. Flagged here, the check is complete (DONE); otherwise it waits
+     * for the larger model (SCREENED). A submission screened before is not sent again.
      */
-    public SubmissionNovelty check(Submission submission, Runnable keepAlive) throws InterruptedException {
-        var existing = repository.findBySubmissionId(submission.getId())
-                .filter(n -> n.getStatus() == SubmissionNovelty.Status.DONE);
-        if (existing.isPresent()) {
-            return existing.get();
+    public SubmissionNovelty screen(Submission submission) {
+        SubmissionNovelty n = row(submission);
+        if (n.getVerdict() != null && n.getStatus() != SubmissionNovelty.Status.UNAVAILABLE) {
+            return n;                                   // re-fetched task after a crash
         }
-        String id = submission.getId().toString();
         // abstract_text carries the section labels; the pipeline splits it by them
-        Map<String, Object> screening = client.check(id, submission.getTitle(), submission.getAbstractText());
+        Map<String, Object> screening = client.check(submission.getId().toString(),
+                submission.getTitle(), submission.getAbstractText());
         String verdict = String.valueOf(screening.get("verdict"));
-        boolean screeningFlagged = !"likely_novel".equals(verdict);
-
-        Map<String, Object> answer = null;
-        if (!screeningFlagged) {
-            Map<String, Object> sub = Map.of("id", id, "title", submission.getTitle(),
-                    "abstract", submission.getAbstractText());
-            ScreenResponse job = client.askNew(List.of(Map.of("submission", sub, "results", List.of(screening))));
-            answer = awaitAnswer(job.getJobId(), keepAlive);
-        }
-        String addsNew = answer == null ? null : String.valueOf(answer.get("adds_new"));
-
-        SubmissionNovelty n = repository.findBySubmissionId(submission.getId()).orElseGet(SubmissionNovelty::new);
-        n.setSubmissionId(submission.getId());
-        n.setStatus(SubmissionNovelty.Status.DONE);
+        boolean flagged = !"likely_novel".equals(verdict);
         n.setVerdict(verdict);
-        n.setAddsNew(addsNew);
-        n.setFlagged(screeningFlagged || LLM_FLAG.contains(addsNew));
+        n.setFlagged(flagged);
+        n.setStatus(flagged ? SubmissionNovelty.Status.DONE : SubmissionNovelty.Status.SCREENED);
         n.setCheckedAt(LocalDateTime.now());
         n.setError(null);
-        Map<String, Object> result = new HashMap<>();
-        result.put("screening", screening);
-        result.put("novelty_q", answer);
-        n.setResultJson(toJson(result));
-        log.info("[novelty] submission {}: {}{} -> {}", id, verdict,
-                addsNew == null ? "" : ", 35B: " + addsNew, n.getFlagged() ? "flagged" : "not flagged");
+        n.setResultJson(toJson(result(screening, null)));
+        log.info("[novelty] submission {}: screening {}", submission.getId(), verdict);
+        return repository.save(n);
+    }
+
+    /**
+     * Ask the larger model about a submission screening let through.
+     *
+     * @param keepAlive called while it thinks, to keep the task's lock
+     */
+    @SuppressWarnings("unchecked")
+    public SubmissionNovelty ask(Submission submission, Runnable keepAlive) throws InterruptedException {
+        SubmissionNovelty n = row(submission);
+        if (n.getStatus() == SubmissionNovelty.Status.DONE) {
+            return n;
+        }
+        Map<String, Object> screening = (Map<String, Object>) fromJson(n.getResultJson()).get("screening");
+        if (screening == null) {
+            throw new IllegalStateException("submission " + submission.getId() + " has not been screened");
+        }
+        Map<String, Object> sub = Map.of("id", submission.getId().toString(), "title", submission.getTitle(),
+                "abstract", submission.getAbstractText());
+        ScreenResponse job = client.askNew(List.of(Map.of("submission", sub, "results", List.of(screening))));
+        Map<String, Object> answer = awaitAnswer(job.getJobId(), keepAlive);
+        String addsNew = String.valueOf(answer.get("adds_new"));
+
+        n.setAddsNew(addsNew);
+        n.setFlagged(LLM_FLAG.contains(addsNew));
+        n.setStatus(SubmissionNovelty.Status.DONE);
+        n.setCheckedAt(LocalDateTime.now());
+        n.setResultJson(toJson(result(screening, answer)));
+        log.info("[novelty] submission {}: larger model {}", submission.getId(), addsNew);
         return repository.save(n);
     }
 
     /** The pipeline stayed unreachable: record that, so the process can go on and people see why. */
     public SubmissionNovelty markUnavailable(Submission submission, String error) {
-        SubmissionNovelty n = repository.findBySubmissionId(submission.getId()).orElseGet(SubmissionNovelty::new);
-        n.setSubmissionId(submission.getId());
+        SubmissionNovelty n = row(submission);
         n.setStatus(SubmissionNovelty.Status.UNAVAILABLE);
         n.setCheckedAt(LocalDateTime.now());
         n.setError(error == null ? null : error.substring(0, Math.min(error.length(), 1000)));
         return repository.save(n);
+    }
+
+    private SubmissionNovelty row(Submission submission) {
+        return repository.findBySubmissionId(submission.getId()).orElseGet(() -> {
+            SubmissionNovelty n = new SubmissionNovelty();
+            n.setSubmissionId(submission.getId());
+            return n;
+        });
+    }
+
+    private static Map<String, Object> result(Map<String, Object> screening, Map<String, Object> answer) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("screening", screening);
+        result.put("novelty_q", answer);
+        return result;
     }
 
     private Map<String, Object> awaitAnswer(String jobId, Runnable keepAlive) throws InterruptedException {
@@ -121,6 +146,18 @@ public class NoveltyCheckService {
             return mapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("cannot serialise the novelty result", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> fromJson(String json) {
+        if (json == null) {
+            return Map.of();
+        }
+        try {
+            return mapper.readValue(json, Map.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("unreadable novelty result", e);
         }
     }
 }

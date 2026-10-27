@@ -74,7 +74,12 @@ class ProcessesXmlTest {
     void processesAreDeployedUnderTheTenantTheBackendStartsThemIn() throws Exception {
         Map<String, Archive> archives = archives();
         assertEquals("cfp", archives.get("cfp").tenantId());
-        assertEquals(Set.of("abstract_submission_lifecycle"), processKeys(archives.get("cfp").resources().get(0)));
+        Set<String> cfp = new HashSet<>();
+        for (String r : archives.get("cfp").resources()) {
+            cfp.addAll(processKeys(r));
+        }
+        // the call-for-papers process calls novelty_check: both must be under the same tenant
+        assertEquals(Set.of("abstract_submission_lifecycle", "novelty_check"), cfp);
         assertEquals("screening", archives.get("screening").tenantId());
         assertEquals(Set.of("novelty_batch"), processKeys(archives.get("screening").resources().get(0)));
     }

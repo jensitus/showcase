@@ -26,9 +26,12 @@ import java.util.UUID;
 public class SubmissionNovelty {
 
     public enum Status {
+        /** Screened and not flagged: waiting for the larger model. */
+        SCREENED,
         /** Checked; verdict (and adds_new, if the 35B was asked) are set. */
         DONE,
-        /** The pipeline could not be reached, even after retries; the process went on without it. */
+        /** The pipeline could not be reached, even after retries; the process went on without it.
+         *  A screening done before that is kept (verdict). */
         UNAVAILABLE
     }
 

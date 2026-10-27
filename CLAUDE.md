@@ -51,12 +51,16 @@ CIB Seven must be started separately (it is not in docker-compose.yaml). Default
 | `sse/` | Server-Sent Events for real-time frontend updates |
 | `shared/` | Mail service, utilities (DataItem, MapObject, converters) |
 
-### Two BPMN processes
+### Three BPMN processes
 
 1. **Abstract Submission** (`abstract-submission.bpmn`) — process key `abstract_submission_lifecycle`, tenant `cfp`
-2. **Novelty Batch Screening** (`novelty_batch.bpmn`) — process key `novelty_batch`, tenant `screening`
+2. **Novelty Check** (`novelty-check.bpmn`) — process key `novelty_check`, tenant `cfp`: called by (1) for a
+   valid submission. Screen against PubMed → if not flagged, ask the larger model → result in
+   `submission_novelty`; an error event subprocess records "unavailable" when the pipeline stays
+   unreachable. Workers: `NoveltyCheckWorkers`.
+3. **Novelty Batch Screening** (`novelty_batch.bpmn`) — process key `novelty_batch`, tenant `screening`
 
-Both BPMN files live in the engine module, `cibdemo/src/main/resources/processes/<tenant>/`,
+The BPMN files live in the engine module, `cibdemo/src/main/resources/processes/<tenant>/`,
 and CIB Seven deploys them at startup under their tenant, as listed in
 `cibdemo/src/main/resources/META-INF/processes.xml` (scanning is off: a new .bpmn must be
 added there; `ProcessesXmlTest` fails otherwise). Only changed files are redeployed.

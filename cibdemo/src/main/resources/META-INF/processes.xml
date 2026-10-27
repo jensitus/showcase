@@ -15,9 +15,11 @@
     xmlns="http://www.camunda.org/schema/1.0/ProcessApplication"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-  <!-- Call for papers: an abstract from submission to presentation. -->
+  <!-- Call for papers: an abstract from submission to presentation, and the novelty check
+       it calls (same tenant: a call activity resolves the called process by it). -->
   <process-archive name="cfp" tenantId="cfp">
     <resource>processes/cfp/abstract-submission.bpmn</resource>
+    <resource>processes/cfp/novelty-check.bpmn</resource>
     <properties>
       <property name="isDeleteUponUndeploy">false</property>
       <property name="isScanForProcessDefinitions">false</property>
