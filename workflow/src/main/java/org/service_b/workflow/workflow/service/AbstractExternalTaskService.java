@@ -31,9 +31,11 @@ public abstract class AbstractExternalTaskService {
         Topic topic = setTopic(taskDef.topicName(), taskDef.businessKey());
         FetchAndLock fetchAndLock = setFetchAndLock(topic);
 
-        log.info("Processing external task: {}", topic.getTopicName());
-
         FetchAndLockResponse response = fetchAndLockService.fetchAndLockExternalTask(fetchAndLock);
+        if (response == null) {
+            return;  // no task waiting
+        }
+        log.info("Processing external task: {}", topic.getTopicName());
         Map<String, Object> result = taskDef.handler().processVariables(response.getVariables());
 
         completeTask(response.getId(), result);

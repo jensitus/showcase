@@ -23,6 +23,7 @@ import org.service_b.workflow.workflow.persistence.entity.ProcessEntity;
 import org.service_b.workflow.workflow.persistence.entity.Processable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.service_b.workflow.workflow.config.CibSevenProperties;
 import org.springframework.web.client.RestClient;
 
 import java.util.LinkedHashMap;
@@ -262,7 +263,7 @@ class SubmissionWorkflowServiceTest {
         private ProcessInstanceWithVariableDto successResponse;
 
         StubRestClientService() {
-            super(RestClient.builder());
+            super(RestClient.builder(), new CibSevenProperties());
         }
 
         void configureSuccess(ProcessInstanceWithVariableDto response) {

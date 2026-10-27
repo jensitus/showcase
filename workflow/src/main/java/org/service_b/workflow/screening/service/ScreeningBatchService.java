@@ -88,13 +88,13 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
         return defs;
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void ingest() { processExternalTask(taskDefinitions, "ingest"); }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void report() { processExternalTask(taskDefinitions, "report"); }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void notifyCommittee() { processExternalTask(taskDefinitions, "notify"); }
 
     /**
@@ -103,7 +103,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
      * each chunk. The chunk loop checkpoints, so if the lock ever expires (worker crash),
      * the task is re-fetched and resumes from the last unfinished chunk.
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void screen() {
         Topic topic = new Topic();
         topic.setTopicName("novelty_screen");
@@ -153,7 +153,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
      * ~40 s per unflagged abstract — a congress takes days — so like the screen step it
      * takes its own lock, extends it while polling, and resumes from the last checkpoint.
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void askNew() {
         Topic topic = new Topic();
         topic.setTopicName("novelty_ask_new");

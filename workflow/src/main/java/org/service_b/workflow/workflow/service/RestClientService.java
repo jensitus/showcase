@@ -2,10 +2,12 @@ package org.service_b.workflow.workflow.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.service_b.workflow.workflow.config.CibSevenProperties;
 import org.service_b.workflow.workflow.dto.*;
 import org.service_b.workflow.workflow.rest.CibSevenRestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -23,9 +25,15 @@ public class RestClientService {
     private String cibsevenBaseUrl;
 
     private final RestClient restClient;
+    /** For fetchAndLock only: a long-polling fetch is held open, so it gets a read timeout beyond that. */
+    private final RestClient fetchClient;
 
-    public RestClientService(RestClient.Builder restClientBuilder) {
+    public RestClientService(RestClient.Builder restClientBuilder, CibSevenProperties cibSevenProperties) {
         this.restClient = restClientBuilder.build();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10_000);
+        requestFactory.setReadTimeout(cibSevenProperties.getLongPollMs() + 15_000);
+        this.fetchClient = restClientBuilder.clone().requestFactory(requestFactory).build();
     }
 
 //    public void sendTaskToList(TaskDto taskDto) {
@@ -55,16 +63,14 @@ public class RestClientService {
         return entity.getBody();
     }
 
+    /** The first locked task, or null when none is waiting (the engine answers []). */
     public FetchAndLockResponse fetchAndLock(FetchAndLock fetchAndLock) {
-        ResponseEntity<FetchAndLockResponse[]> entity = restClient.post()
-                                                                  .uri(cibsevenBaseUrl + "/external-task/fetchAndLock")
-                                                                  .body(fetchAndLock)
-                                                                  .retrieve()
-                                                                  .toEntity(FetchAndLockResponse[].class);
-        log.info(entity.toString());
-        FetchAndLockResponse[] body = entity.getBody();
-        if (body != null) return body[0];
-        return null;
+        FetchAndLockResponse[] body = fetchClient.post()
+                                                 .uri(cibsevenBaseUrl + "/external-task/fetchAndLock")
+                                                 .body(fetchAndLock)
+                                                 .retrieve()
+                                                 .body(FetchAndLockResponse[].class);
+        return body == null || body.length == 0 ? null : body[0];
     }
 
     public ResponseEntity<Void> completeExternalTask(String taskId, CompleteExternalTaskRequest completeExternalTaskRequest) {

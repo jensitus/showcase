@@ -73,7 +73,7 @@ public class NoveltyCheckWorkers {
         Map<String, Object> run(Submission submission, Runnable keepAlive) throws Exception;
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void screen() {
         process("novelty_check_screen", (submission, keepAlive) -> {
             SubmissionNovelty n = noveltyCheckService.screen(submission);
@@ -83,12 +83,12 @@ public class NoveltyCheckWorkers {
         });
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void ask() {
         process("novelty_check_ask", (submission, keepAlive) -> variables(noveltyCheckService.ask(submission, keepAlive)));
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void recordUnavailable() {
         FetchAndLockResponse task = fetch("novelty_check_unavailable");
         if (task == null) {

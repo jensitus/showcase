@@ -48,27 +48,27 @@ public class CfpExternalTaskService extends AbstractExternalTaskService {
         return defs;
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void notifyRejection() {
         processExternalTask(taskDefinitions, "notifyRejection");
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void notifyAcceptance() {
         processExternalTask(taskDefinitions, "notifyAcceptance");
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void sendRegReminder() {
         processExternalTask(taskDefinitions, "sendRegReminder");
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void sendConfirmReminder() {
         processExternalTask(taskDefinitions, "sendConfirmReminder");
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedDelayString = "${cibseven.poll-delay-ms:5000}")
     public void mockNoResponse() {
         processExternalTask(taskDefinitions, "mockNoResponse");
     }
