@@ -68,7 +68,7 @@
                     <td class="text-muted small font-monospace">{{ submission.submissionNumber }}</td>
                     <td><strong>{{ submission.title }}</strong></td>
                     <td class="text-muted small">{{ submission.authors }}</td>
-                    <td class="text-muted small">{{ submission.topic }}</td>
+                    <td class="text-muted small">{{ 'SUBMISSION.TOPIC_' + submission.topic | translate }}</td>
                     <td>
                       <span class="badge" [class]="getStateClass(submission.state)">
                         {{ submission.state }}

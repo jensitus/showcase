@@ -33,13 +33,30 @@ export class SubmitAbstractComponent {
   readonly sectionDefs = ABSTRACT_SECTIONS;
   readonly maxTotal = MAX_TOTAL;
 
+  // as the backend's SubmissionTopic; labels via SUBMISSION.TOPIC_<constant>
   topics = [
+    'ABDOMINAL_VISCERA',
     'ARTIFICIAL_INTELLIGENCE',
-    'SOFTWARE_ARCHITECTURE',
-    'DEVOPS',
-    'CLOUD_COMPUTING',
-    'SECURITY',
-    'DATA_ENGINEERING',
+    'BREAST',
+    'CARDIAC',
+    'CHEST',
+    'EDUCATION_PROFESSIONAL',
+    'EMERGENCY',
+    'GENITOURINARY',
+    'GI_TRACT',
+    'HEAD_AND_NECK',
+    'HYBRID_MOLECULAR',
+    'IMAGING_INFORMATICS',
+    'INTERVENTIONAL',
+    'MUSCULOSKELETAL',
+    'NEURO',
+    'ONCOLOGIC',
+    'PAEDIATRIC',
+    'PHYSICS',
+    'QUALITY_SAFETY',
+    'RADIATION_PROTECTION',
+    'RADIOGRAPHERS',
+    'VASCULAR',
     'OTHER'
   ];
 

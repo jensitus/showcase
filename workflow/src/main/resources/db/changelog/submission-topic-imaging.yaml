@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: submission-topic-imaging
+      author: jensitus
+      comment: The software topics gave way to imaging topics; submissions with a removed topic become OTHER, so they still load.
+      changes:
+        - update:
+            tableName: submission
+            columns:
+              - column:
+                  name: topic
+                  value: OTHER
+            where: topic IN ('SOFTWARE_ARCHITECTURE', 'DEVOPS', 'CLOUD_COMPUTING', 'SECURITY', 'DATA_ENGINEERING')

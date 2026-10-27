@@ -55,7 +55,7 @@ class SubmissionWorkflowServiceTest {
         req.setTitle("On the Origins of Bugs");
         req.setAuthors("A. Author");
         req.setAbstractText("This paper investigates the root causes of software defects.");
-        req.setTopic(SubmissionTopic.SOFTWARE_ARCHITECTURE.name());
+        req.setTopic(SubmissionTopic.IMAGING_INFORMATICS.name());
         req.setSubmitterEmail("author@example.com");
         return req;
     }

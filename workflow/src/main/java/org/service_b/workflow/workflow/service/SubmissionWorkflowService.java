@@ -93,7 +93,7 @@ public class SubmissionWorkflowService {
         Map<String, String> paperDetails = new LinkedHashMap<>();
         paperDetails.put("Title", submission.getTitle());
         paperDetails.put("Authors", submission.getAuthors());
-        paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
+        paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().label() : "—");
         paperDetails.put("Submitted by", submission.getSubmitterEmail());
         info.put("Submission", paperDetails);
 
@@ -183,7 +183,7 @@ public class SubmissionWorkflowService {
 
         Map<String, String> paperDetails = new LinkedHashMap<>();
         paperDetails.put("Title", submission.getTitle());
-        paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
+        paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().label() : "—");
         info.put("Submission", paperDetails);
 
         info.put("Content", abstractContent(submission));
@@ -426,7 +426,7 @@ public class SubmissionWorkflowService {
         Map<String, String> paper = new LinkedHashMap<>();
         paper.put("Title", submission.getTitle());
         paper.put("Authors", submission.getAuthors());
-        paper.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
+        paper.put("Topic", submission.getTopic() != null ? submission.getTopic().label() : "—");
         info.put("Submission", paper);
 
         Map<String, String> session = new LinkedHashMap<>();
