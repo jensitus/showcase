@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: submission-novelty
+      author: jensitus
+      comment: The novelty check of a valid submission (pipeline on the Spark) — one row per submission.
+      changes:
+        - createTable:
+            tableName: submission_novelty
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: submission_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+                    foreignKeyName: fk_submission_novelty_submission
+                    references: submission(id)
+                    deleteCascade: true
+              - column:
+                  name: status
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verdict
+                  type: varchar(32)
+              - column:
+                  name: adds_new
+                  type: varchar(16)
+              - column:
+                  name: flagged
+                  type: boolean
+              - column:
+                  name: checked_at
+                  type: timestamp
+              - column:
+                  name: error
+                  type: varchar(1024)
+              - column:
+                  name: result_json
+                  type: text

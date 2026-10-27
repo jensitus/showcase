@@ -3,6 +3,13 @@ spring:
     active: dev
   application:
     name: workflow-showcase
+  task:
+    scheduling:
+      # Every external-task poller is an @Scheduled method. With the default single thread,
+      # a long one (a batch screen step: hours; a novelty check: up to minutes) held up all
+      # the others, e.g. the CFP notification mails.
+      pool:
+        size: 8
   liquibase:
     enabled: true
     change-log: classpath:/db/db.changelog-master.yaml

@@ -1,15 +1,16 @@
 package org.service_b.workflow.screening.client;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.screening.config.NoveltyProperties;
 import org.service_b.workflow.screening.dto.JobStatus;
 import org.service_b.workflow.screening.dto.ScreenRequest;
 import org.service_b.workflow.screening.dto.ScreenResponse;
 import org.service_b.workflow.screening.dto.Submission;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -25,11 +26,23 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class NoveltyApiClient {
 
     private final RestTemplate restTemplate;
     private final NoveltyProperties props;
+
+    /**
+     * Its own RestTemplate with timeouts: the pipeline sits behind an SSH tunnel, and a hung
+     * connection must fail the call (and let the caller retry) rather than block a worker.
+     * Reads may take a while — the first /check after a pipeline restart takes ~75 s.
+     */
+    public NoveltyApiClient(RestTemplateBuilder builder, NoveltyProperties props) {
+        this.restTemplate = builder
+                .setConnectTimeout(Duration.ofSeconds(10))
+                .setReadTimeout(Duration.ofMinutes(5))
+                .build();
+        this.props = props;
+    }
 
     /**
      * Queue one chunk of submissions for screening; returns the job handle.
@@ -80,6 +93,18 @@ public class NoveltyApiClient {
     /** Poll an ask job. Caller loops until {@link JobStatus#isDone()}. */
     public JobStatus getAskJob(String jobId) {
         return restTemplate.getForObject(props.getApiBaseUrl() + "/ask-new/" + jobId, JobStatus.class);
+    }
+
+    /**
+     * Screen one abstract synchronously against the pipeline's default corpus (all of
+     * PubMed on the demo server). Returns its NoveltyReport: verdict, novelty_score,
+     * rationale, top_matches.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> check(String id, String title, String abstractText) {
+        String url = props.getApiBaseUrl() + "/check";
+        log.info("POST {} (submission {})", url, id);
+        return restTemplate.postForObject(url, Map.of("id", id, "title", title, "abstract", abstractText), Map.class);
     }
 
     /** Liveness check before starting a long run. */

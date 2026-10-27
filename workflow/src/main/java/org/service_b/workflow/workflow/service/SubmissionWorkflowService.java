@@ -1,20 +1,25 @@
 package org.service_b.workflow.workflow.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.service_b.workflow.shared.utils.HashMapConverter;
 import org.service_b.workflow.submission.dto.CreateSubmissionRequest;
 import org.service_b.workflow.submission.persistence.Submission;
+import org.service_b.workflow.submission.persistence.SubmissionNovelty;
+import org.service_b.workflow.submission.persistence.SubmissionNoveltyRepository;
 import org.service_b.workflow.submission.service.SubmissionService;
 import org.service_b.workflow.workflow.dto.ProcessInstanceWithVariableDto;
 import org.service_b.workflow.workflow.dto.TaskDto;
 import org.service_b.workflow.workflow.exception.ProcessStartException;
-import org.service_b.workflow.shared.utils.HashMapConverter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +41,7 @@ public class SubmissionWorkflowService {
     private final RestClientService restClientService;
     private final ProcessService processService;
     private final HashMapConverter hashMapConverter;
+    private final SubmissionNoveltyRepository noveltyRepository;
 
     public Submission startSubmissionWorkflow(CreateSubmissionRequest request, String createdBy) {
         // 1. Save submission — commits immediately (no outer transaction)
@@ -145,10 +151,71 @@ public class SubmissionWorkflowService {
         Submission submission = submissionService.getSubmission(submissionId);
 
         taskDto.setAssignee(initiator);
-        taskDto.setAdditionalInfo(hashMapConverter.convertToDatabaseColumn(buildSubmissionAdditionalInfo(submission)));
+        taskDto.setAdditionalInfo(hashMapConverter.convertToDatabaseColumn(withNovelty(buildSubmissionAdditionalInfo(submission), submission)));
         taskDto.setConfig(hashMapConverter.convertToDatabaseColumn(buildReviewerConfig()));
         taskDto.setConfigData(hashMapConverter.convertToDatabaseColumn(buildReviewerConfigData()));
         return taskDto;
+    }
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final Map<String, String> VERDICT_LABEL = Map.of(
+            "likely_novel", "Likely novel",
+            "possible_overlap", "Possible overlap",
+            "likely_duplicate", "Likely duplicate");
+    private static final Map<String, String> ADDS_NEW_LABEL = Map.of(
+            "no", "Nothing new",
+            "partly", "Only partly new",
+            "yes", "Adds something new");
+
+    /** The info with a "Novelty check" group between the submission details and the abstract. */
+    private Map<String, Object> withNovelty(Map<String, Object> info, Submission submission) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        info.forEach((k, v) -> {
+            if (k.equals("Content")) {
+                out.put("Novelty check", noveltyInfo(submission));
+            }
+            out.put(k, v);
+        });
+        return out;
+    }
+
+    /** What the chair needs from the novelty check before choosing reviewers. */
+    @SuppressWarnings("unchecked")
+    private Map<String, String> noveltyInfo(Submission submission) {
+        Map<String, String> out = new LinkedHashMap<>();
+        Optional<SubmissionNovelty> found = noveltyRepository.findBySubmissionId(submission.getId());
+        if (found.isEmpty()) {
+            out.put("Status", "Not checked");
+            return out;
+        }
+        SubmissionNovelty n = found.get();
+        if (n.getStatus() == SubmissionNovelty.Status.UNAVAILABLE) {
+            out.put("Status", "Not checked — the novelty pipeline was unavailable");
+            out.put("Error", n.getError());
+            return out;
+        }
+        out.put("Result", Boolean.TRUE.equals(n.getFlagged()) ? "Flagged — look at the earlier work" : "Not flagged");
+        out.put("Screening (PubMed)", VERDICT_LABEL.getOrDefault(n.getVerdict(), n.getVerdict()));
+        try {
+            Map<String, Object> result = JSON.readValue(n.getResultJson(), Map.class);
+            Map<String, Object> screening = (Map<String, Object>) result.get("screening");
+            List<Map<String, Object>> top = (List<Map<String, Object>>) screening.getOrDefault("top_matches", List.of());
+            if (!top.isEmpty()) {
+                Map<String, Object> m = top.get(0);
+                out.put("Closest earlier work", String.format("%s (%s, similarity %s)",
+                        m.get("title"), m.get("year"), m.get("similarity")));
+            }
+            Map<String, Object> q = (Map<String, Object>) result.get("novelty_q");
+            if (q == null) {
+                out.put("Larger model", "Not asked — screening already flagged it");
+            } else {
+                out.put("Larger model", ADDS_NEW_LABEL.getOrDefault(n.getAddsNew(), n.getAddsNew())
+                        + ": " + q.getOrDefault("adds_what", ""));
+            }
+        } catch (Exception e) {
+            log.warn("unreadable novelty result for submission {}: {}", submission.getId(), e.getMessage());
+        }
+        return out;
     }
 
     private Map<String, Object> buildReviewerConfig() {
