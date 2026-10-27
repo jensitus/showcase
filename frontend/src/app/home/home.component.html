@@ -25,17 +25,31 @@
                 <div class="card-body p-4 d-flex flex-column">
                     <h4 class="card-title text-primary">{{ 'HOME.INVITE_TITLE' | translate }}</h4>
                     <p class="card-text flex-grow-1">{{ 'HOME.INVITE_TEXT' | translate }}</p>
-                    <p class="card-text text-muted small">{{ 'HOME.INVITE_CTA' | translate }}</p>
-                    <div class="d-flex gap-2 mt-3">
-                        <a [routerLink]="['/register']" class="btn btn-primary">
-                            <i class="bi bi-person-plus me-1"></i>
-                            {{ 'HOME.REGISTER' | translate }}
-                        </a>
-                        <a [routerLink]="['/login']" class="btn btn-outline-primary">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>
-                            {{ 'HOME.LOGIN' | translate }}
-                        </a>
-                    </div>
+                    @if (isLoggedIn()) {
+                        <p class="card-text text-muted small">{{ 'HOME.START_CTA' | translate }}</p>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a [routerLink]="['/submit-abstract']" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>
+                                {{ 'NAV.SUBMIT_ABSTRACT' | translate }}
+                            </a>
+                            <a [routerLink]="['/new-task-list']" class="btn btn-outline-primary">
+                                <i class="bi bi-card-checklist me-1"></i>
+                                {{ 'NAV.TASKS' | translate }}
+                            </a>
+                        </div>
+                    } @else {
+                        <p class="card-text text-muted small">{{ 'HOME.INVITE_CTA' | translate }}</p>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a [routerLink]="['/register']" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-1"></i>
+                                {{ 'HOME.REGISTER' | translate }}
+                            </a>
+                            <a [routerLink]="['/login']" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>
+                                {{ 'HOME.LOGIN' | translate }}
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

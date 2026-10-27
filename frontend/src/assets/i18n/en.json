@@ -273,6 +273,7 @@
     "INVITE_TITLE": "Try it yourself",
     "INVITE_TEXT": "This showcase demonstrates the benefits of BPMN and a workflow engine in a clear, hands-on way. Using a conference's call for papers as an example, you can follow a real process instance step by step — from abstract submission to decision — live in the diagram.",
     "INVITE_CTA": "Create a free account and experience the process firsthand.",
+    "START_CTA": "Submit an abstract to start a process instance, then follow it in your tasks and live in the diagram.",
     "REGISTER": "Create Account",
     "LOGIN": "Sign In"
   }

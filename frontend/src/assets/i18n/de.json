@@ -273,6 +273,7 @@
     "INVITE_TITLE": "Selbst ausprobieren",
     "INVITE_TEXT": "Dieser Showcase zeigt auf kompakte und verständliche Weise, welche Vorteile BPMN und eine Prozessengine im Unternehmensalltag bieten. Am Beispiel des Call for Papers einer Konferenz können Sie einen echten Prozess Schritt für Schritt verfolgen — von der Einreichung des Abstracts bis zur Entscheidung — live im Diagramm.",
     "INVITE_CTA": "Legen Sie sich kostenlos einen Account an und erleben Sie den Prozess hautnah.",
+    "START_CTA": "Reichen Sie einen Abstract ein, um eine Prozessinstanz zu starten, und verfolgen Sie sie in Ihren Aufgaben und live im Diagramm.",
     "REGISTER": "Account erstellen",
     "LOGIN": "Anmelden"
   }
