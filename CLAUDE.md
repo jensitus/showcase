@@ -85,7 +85,7 @@ This backend acts as both process starter and task handler:
 
 ### Frontend architecture
 
-- `app/workflow/` — BPMN viewer (bpmn-js), process list, deployment
+- `app/workflow/` — BPMN viewer (bpmn-js), process list (deployment is the engine's job: `cibdemo/.../META-INF/processes.xml`)
 - `app/task/` — generic task form renderer, task-specific components
 - `app/submission/` — abstract submission flow
 - `app/screening/` — novelty screening dashboard (`/screening`)

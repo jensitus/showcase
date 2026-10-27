@@ -5,20 +5,9 @@
     "LOGIN": "Login",
     "LOGOUT": "Logout",
     "COLLAPSE_SIDEBAR": "Collapse Sidebar",
-    "DEPLOY": "Deploy BPMN",
     "CFP_SECTION": "Call for Papers",
     "SUBMISSIONS": "Submissions",
     "SUBMIT_ABSTRACT": "Submit Abstract"
-  },
-  "DEPLOY": {
-    "TITLE": "Deploy BPMN Process",
-    "SUBTITLE": "Upload a BPMN file to deploy it to the workflow engine.",
-    "FILE": "BPMN File",
-    "NAME": "Deployment Name",
-    "TENANT": "Tenant ID",
-    "SUBMIT": "Deploy",
-    "SUCCESS": "Deployment successful!",
-    "ERROR": "Deployment failed."
   },
   "AUTH": {
     "LOGIN": {

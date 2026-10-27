@@ -13,7 +13,6 @@ import {ForgotPasswordComponent} from "./auth/forgot-password/forgot-password.co
 import {ResetPasswordComponent} from "./auth/reset-password/reset-password.component";
 import {ChangePasswordComponent} from "./auth/change-password/change-password.component";
 import {UserProfileComponent} from "./auth/user-profile/user-profile.component";
-import {BpmnDeploymentComponent} from "./workflow/bpmn-deployment/bpmn-deployment.component";
 import {adminGuard} from "./auth/admin.guard";
 import {AdminUsersComponent} from "./admin/admin-users/admin-users.component";
 import {SubmitAbstractComponent} from "./submission/submit-abstract/submit-abstract.component";
@@ -35,7 +34,6 @@ export const routes: Routes = [
     {path: 'reset-password', component: ResetPasswordComponent},
     {path: 'change-password', component: ChangePasswordComponent},
     {path: 'profile', component: UserProfileComponent},
-    {path: 'deploy', component: BpmnDeploymentComponent, canActivate: [adminGuard]},
     {path: 'admin/users', component: AdminUsersComponent, canActivate: [adminGuard]},
     {path: 'submissions', component: SubmissionListComponent},
     {path: 'submit-abstract', component: SubmitAbstractComponent},

@@ -5,20 +5,9 @@
     "LOGIN": "Anmelden",
     "LOGOUT": "Abmelden",
     "COLLAPSE_SIDEBAR": "Seitenleiste einklappen",
-    "DEPLOY": "BPMN deployen",
     "CFP_SECTION": "Call for Papers",
     "SUBMISSIONS": "Einreichungen",
     "SUBMIT_ABSTRACT": "Abstract einreichen"
-  },
-  "DEPLOY": {
-    "TITLE": "BPMN-Prozess deployen",
-    "SUBTITLE": "Laden Sie eine BPMN-Datei hoch, um sie in die Workflow-Engine zu deployen.",
-    "FILE": "BPMN-Datei",
-    "NAME": "Deployment-Name",
-    "TENANT": "Tenant-ID",
-    "SUBMIT": "Deployen",
-    "SUCCESS": "Deployment erfolgreich!",
-    "ERROR": "Deployment fehlgeschlagen."
   },
   "AUTH": {
     "LOGIN": {
