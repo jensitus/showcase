@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.service_b.workflow.insurance.persistence.Insurance;
-import org.service_b.workflow.insurance.persistence.InsuranceRepository;
 import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.persistence.SubmissionRepository;
 import org.service_b.workflow.workflow.domain.ResponsibleForType;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 public class ProcessService {
 
     private final ProcessRepository processRepository;
-    private final InsuranceRepository insuranceRepository;
     private final SubmissionRepository submissionRepository;
     private final VariableRepository variableRepository;
     private final ProcessMapper processMapper;
@@ -49,17 +46,6 @@ public class ProcessService {
         return processMapper.toDto(byProcessInstanceId);
     }
 
-    public Optional<String> findProcessInstanceIdByInsuranceId(UUID insuranceId) {
-        return processRepository.findByResponsibleForId(insuranceId)
-                                .map(ProcessEntity::getProcessInstanceId);
-    }
-
-    public Optional<Insurance> findInsuranceByProcessInstanceId(String processInstanceId) {
-        return Optional.ofNullable(processRepository.findByProcessInstanceId(processInstanceId))
-                       .filter(e -> e.getResponsibleForType() == ResponsibleForType.INSURANCE)
-                       .flatMap(e -> insuranceRepository.findById(e.getResponsibleForId()));
-    }
-
     public Optional<String> findProcessInstanceIdBySubmissionId(UUID submissionId) {
         return processRepository.findByResponsibleForId(submissionId)
                                 .map(ProcessEntity::getProcessInstanceId);
@@ -73,9 +59,8 @@ public class ProcessService {
 
     public Processable getResponsibleEntity(ProcessEntity processEntity) {
         return switch (processEntity.getResponsibleForType()) {
-            case INSURANCE -> insuranceRepository.findById(processEntity.getResponsibleForId()).orElseThrow();
             case SUBMISSION -> submissionRepository.findById(processEntity.getResponsibleForId()).orElseThrow();
-            case TODO, CLAIM, CONTRACT -> null;
+            case INSURANCE, TODO, CLAIM, CONTRACT -> null;
         };
     }
 
@@ -111,7 +96,7 @@ public class ProcessService {
         processEntity.setProcessDefinitionId(processInstanceWithVariableDto.getDefinitionId());
         processEntity.setProcessInstanceId(processInstanceWithVariableDto.getId());
         processEntity.setTenantId(processInstanceWithVariableDto.getTenantId());
-        // Link process to a single Insurance (one process -> one insurance)
+        // Link process to a single entity (one process -> one submission, ...)
         processEntity.setResponsibleForType(processable.getType());
         processEntity.setResponsibleForId(processable.getId());
         return processEntity;

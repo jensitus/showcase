@@ -1,7 +1,6 @@
 import {Component, defineInjectable, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink} from "@angular/router";
-import {Workflow} from "../model/workflow";
-import {Subscription} from "rxjs";
+import {forkJoin, Subscription} from "rxjs";
 import {WorkflowService} from "../service/workflow.service";
 import {ProcessDefinition} from "../model/process-definition";
 import {TranslateModule} from "@ngx-translate/core";
@@ -30,40 +29,18 @@ const translations = {
 })
 export class WorkflowListComponent implements OnInit, OnDestroy {
 
+  private static readonly TENANTS = ['cfp', 'screening'];
+
   private subscription$: Subscription[] = [];
-  workflows: Workflow[] = [];
   definitions: ProcessDefinition[];
   private router = inject(Router);
   private workflowService = inject(WorkflowService);
 
-  getWorkflowsByDefinitionKey(key: string, name: string): void {
+  /** The process definitions of every showcase tenant, call for papers first. */
+  getDefinitions(): void {
     this.subscription$.push(
-      this.workflowService.getWorkflowListByKey(key).subscribe({
-        next: (value) => {
-          for (let workflow of value) {
-              console.log('workflow value', value);
-            // workflow.name = name;
-            this.workflows.push(workflow);
-          }
-          console.log('workflows', this.workflows);
-        },
-        error: err => {
-          console.log('error', err);
-        }
-      })
-    )
-  }
-
-  getDefinitionsByTenant(): void {
-    this.subscription$.push(
-      this.workflowService.getDefinitionsByTenant("insurance").subscribe({
-        next: (value) => {
-          this.definitions = value;
-          console.log('definitions: ', this.definitions);
-          for (let definition of this.definitions) {
-            // this.getWorkflowsByDefinitionKey(definition.key, definition.name)
-          }
-        }
+      forkJoin(WorkflowListComponent.TENANTS.map(t => this.workflowService.getDefinitionsByTenant(t))).subscribe({
+        next: (perTenant) => this.definitions = perTenant.flat()
       })
     )
   }
@@ -73,7 +50,7 @@ export class WorkflowListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.getDefinitionsByTenant();
+    this.getDefinitions();
   }
 
     protected readonly defineInjectable = defineInjectable;

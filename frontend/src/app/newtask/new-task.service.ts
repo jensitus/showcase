@@ -50,10 +50,6 @@ export class NewTaskService {
         return this.http.post<void>(`${this.apiUrl}/${id}/complete`, completeTaskEvent);
     }
 
-    getTasksByInsuranceId(insuranceId: string): Observable<TaskDto[]> {
-        return this.http.get<TaskDto[]>(`${this.apiUrl}/by-insurance/${insuranceId}`);
-    }
-
     getTasksBySubmissionId(submissionId: string): Observable<TaskDto[]> {
         return this.http.get<TaskDto[]>(`${this.apiUrl}/by-submission/${submissionId}`);
     }

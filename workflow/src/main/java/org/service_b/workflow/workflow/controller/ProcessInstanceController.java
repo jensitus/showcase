@@ -2,8 +2,6 @@ package org.service_b.workflow.workflow.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.service_b.workflow.insurance.persistence.InsuranceState;
-import org.service_b.workflow.insurance.service.InsuranceService;
 import org.service_b.workflow.submission.persistence.SubmissionState;
 import org.service_b.workflow.submission.service.SubmissionService;
 import org.service_b.workflow.workflow.service.ProcessService;
@@ -21,16 +19,8 @@ import java.util.UUID;
 public class ProcessInstanceController {
 
     private final ProcessService processService;
-    private final InsuranceService insuranceService;
     private final SubmissionService submissionService;
     private final TaskService taskService;
-
-    @GetMapping("/by-insurance/{insuranceId}")
-    public ResponseEntity<Map<String, String>> getProcessInstanceIdByInsuranceId(@PathVariable UUID insuranceId) {
-        return processService.findProcessInstanceIdByInsuranceId(insuranceId)
-                             .map(id -> ResponseEntity.ok(Map.of("processInstanceId", id)))
-                             .orElse(ResponseEntity.notFound().build());
-    }
 
     @GetMapping("/by-submission/{submissionId}")
     public ResponseEntity<Map<String, String>> getProcessInstanceIdBySubmissionId(@PathVariable UUID submissionId) {
@@ -47,14 +37,6 @@ public class ProcessInstanceController {
 
         if ("CANCELLED".equals(state)) {
             taskService.cancelTasksByProcessInstanceId(processInstanceId);
-            processService.findInsuranceByProcessInstanceId(processInstanceId)
-                          .ifPresentOrElse(
-                                  insurance -> {
-                                      log.info("Cancelling insurance {} for process {}", insurance.getId(), processInstanceId);
-                                      insuranceService.updateInsurance(insurance.getId(), InsuranceState.CANCELLED);
-                                  },
-                                  () -> log.warn("No insurance found for process instance {}", processInstanceId)
-                          );
         }
 
         return ResponseEntity.ok().build();

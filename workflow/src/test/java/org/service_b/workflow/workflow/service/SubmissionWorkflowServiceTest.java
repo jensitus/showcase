@@ -140,7 +140,7 @@ class SubmissionWorkflowServiceTest {
         private boolean activateCalled = false;
 
         StubProcessService() {
-            super(null, null, null, null, null, null);
+            super(null, null, null, null, null);
         }
 
         @Override

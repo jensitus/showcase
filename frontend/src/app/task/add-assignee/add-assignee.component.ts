@@ -4,7 +4,7 @@ import {Subscription} from "rxjs";
 import {TaskService} from "../service/task.service";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle} from "@ng-bootstrap/ng-bootstrap";
 import {RouterLink} from "@angular/router";
-import {Message} from "../../customer/message";
+import {Message} from "../../shared/message";
 
 
 @Component({

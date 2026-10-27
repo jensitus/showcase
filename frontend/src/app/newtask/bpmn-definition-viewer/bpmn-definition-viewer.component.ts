@@ -84,7 +84,7 @@ export class BpmnDefinitionViewerComponent implements OnInit, OnDestroy, OnChang
         this.error = null;
 
         // Build URL based on whether version is specified
-        let diagramUrl = `${environment.api_url}/workflows/diagram/${this.processDefinitionKey}`; // /tenant-id/${this.tenantId}
+        let diagramUrl = `${environment.api_url}/workflows/diagram/${this.processDefinitionKey}/tenant-id/${this.tenantId}`;
         if (this.version !== undefined) {
             diagramUrl += `/version/${this.version}`;
         }

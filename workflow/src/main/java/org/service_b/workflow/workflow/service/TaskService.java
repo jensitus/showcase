@@ -46,8 +46,6 @@ public class TaskService {
         TaskEntity savedEntity = taskRepository.save(entity);
         TaskDto taskDto = taskMapper.toDto(savedEntity);
 
-        processService.findInsuranceByProcessInstanceId(request.getProcessInstanceId())
-                      .ifPresent(insurance -> eventService.sendEvent(insurance, "insurance"));
         processService.findSubmissionByProcessInstanceId(request.getProcessInstanceId())
                       .ifPresent(submission -> eventService.sendEvent(submission, "submission"));
 
@@ -142,13 +140,6 @@ public class TaskService {
         }
 
         return taskEntities.map(taskMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TaskDto> getActiveTasksByInsuranceId(UUID insuranceId) {
-        return processService.findProcessInstanceIdByInsuranceId(insuranceId)
-                             .map(this::findActiveTasks)
-                             .orElse(List.of());
     }
 
     public List<TaskDto> getActiveTasksBySubmissionId(UUID submissionId) {

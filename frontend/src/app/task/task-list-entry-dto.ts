@@ -3,7 +3,6 @@ export interface TaskListEntryDto {
    title: string;
    description: string;
    moduleId: string;
-   customerName: string;
    aggregateId: string;
    assignee: string;
    createdAt: string;

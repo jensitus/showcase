@@ -1,12 +1,9 @@
 databaseChangeLog:
+  # The insurance showcase's tables (insurance, CUSTOMER, CUSTOMER_INSURANCE) were created
+  # by changesets removed with it (tag insurance-showcase-v1). Databases that ran them keep
+  # the tables; Liquibase ignores applied changesets that are no longer listed.
   #  - include:
   #      file: classpath:/io/vanillabp/camunda8/liquibase/main.yaml
-  - include:
-      file: /db/changelog/insurance-demo.yaml
-  - include:
-      file: /db/changelog/customer.yaml
-  - include:
-      file: /db/changelog/customer-insurance-relation.yaml
   - include:
       file: /db/changelog/tasks.yaml
   - include:

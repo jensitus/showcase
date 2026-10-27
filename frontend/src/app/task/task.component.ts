@@ -4,7 +4,7 @@ import {Subscription} from "rxjs";
 import {FormsModule} from "@angular/forms";
 import {TaskService} from "./service/task.service";
 import {DatePipe, KeyValuePipe, Location} from "@angular/common";
-import {Message} from "../customer/message";
+import {Message} from "../shared/message";
 import {TaskDto} from "./task-dto";
 import {NgbToast} from "@ng-bootstrap/ng-bootstrap";
 import {TaskFormComponent} from "./task-form/task-form.component";

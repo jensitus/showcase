@@ -190,10 +190,6 @@ export class TaskDetailComponent implements OnInit {
             this.router.navigate(['/submissions']);
             return;
         }
-        if (this.returnTo() === 'insurance-showcase') {
-            this.router.navigate(['/insurance-showcase']);
-            return;
-        }
         const tenantId = this.task()?.tenantId;
         if (tenantId) {
             this.router.navigate(['/new-task-list'], {queryParams: {tenantId}});

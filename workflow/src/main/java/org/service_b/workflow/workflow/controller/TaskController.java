@@ -115,11 +115,6 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
-    @GetMapping("/by-insurance/{insuranceId}")
-    public ResponseEntity<List<TaskDto>> getTasksByInsuranceId(@PathVariable UUID insuranceId) {
-        return ResponseEntity.ok(taskService.getActiveTasksByInsuranceId(insuranceId));
-    }
-
     @GetMapping("/by-submission/{submissionId}")
     public ResponseEntity<List<TaskDto>> getTasksBySubmissionId(@PathVariable UUID submissionId) {
         return ResponseEntity.ok(taskService.getActiveTasksBySubmissionId(submissionId));

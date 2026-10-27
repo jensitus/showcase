@@ -2,28 +2,18 @@ package org.service_b.workflow.workflow.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import org.service_b.workflow.insurance.dto.RequestedContractDto;
-import org.service_b.workflow.insurance.service.InsuranceService;
-import org.service_b.workflow.workflow.MonthlyIncomeException;
 import org.service_b.workflow.workflow.dto.CompleteTaskDto;
 import org.service_b.workflow.workflow.dto.ProcessInstanceDto;
 import org.service_b.workflow.workflow.dto.ProcessDefinitionDto;
-import org.service_b.workflow.workflow.dto.RequestedInsuranceDto;
-import org.service_b.workflow.workflow.service.InsuranceWorkflowService;
 import org.service_b.workflow.workflow.service.Message;
 
-import org.service_b.workflow.workflow.service.RestClientService;
 import org.service_b.workflow.workflow.rest.CamundaEngineRestClient;
 import org.service_b.workflow.workflow.rest.CamundaEngineRestClient.FlowNodeLike;
-import org.service_b.workflow.workflow.service.StartProcessBody;
 import org.service_b.workflow.workflow.service.VersionedDiagramResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,21 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class WorkflowController {
 
-    private final InsuranceWorkflowService insuranceWorkflowService;
-    private final InsuranceService insuranceService;
-    private final RestClientService restClient;
     private final CamundaEngineRestClient camundaEngineRestClient;
 
-    @PostMapping
-    public ResponseEntity<Message> requestInsurance(@RequestBody RequestedInsuranceDto requestedInsuranceDto) throws Exception {
-        insuranceWorkflowService.startInsuranceWorkflow(requestedInsuranceDto);
-        return ResponseEntity.accepted().body(new Message("Insurance successfully requested"));
-    }
-
-    /**
-     * Returns the latest deployed version number for the given process definition key.
-     * Uses tenant "insurance" by default to align with current deployment setup.
-     */
+    /** Returns the latest deployed version number for the given process definition key and tenant. */
     @GetMapping("process-definition/{key}/latest-version/tenant-id/{tenant-id}")
     public ResponseEntity<Message> getLatestDeployedVersion(@PathVariable("key") String key, @PathVariable("tenant-id") String tenantId) {
         Integer version = camundaEngineRestClient.getLatestVersionByKey(key, tenantId);
@@ -61,7 +39,6 @@ public class WorkflowController {
 
     @PostMapping("complete-task")
     public ResponseEntity<Void> completeTask(@RequestBody CompleteTaskDto completeTaskDto) {
-        //insuranceWorkflowService.updateAggregateForTaskCompletion(completeTaskDto);
         for (Map.Entry<String, Object> entry : completeTaskDto.getCompleteVars().entrySet()) {
             log.info(entry.getKey() + ":" + entry.getValue());
         }
@@ -69,10 +46,9 @@ public class WorkflowController {
                              .build();
     }
 
-    @GetMapping("by-definition-key/{key}")
-    public ResponseEntity<List<ProcessInstanceDto>> getProcessInstances(@PathVariable("key") String key) {
-        // Default tenant aligned with current deployments
-        String tenantId = "insurance";
+    @GetMapping("by-definition-key/{key}/tenant-id/{tenant-id}")
+    public ResponseEntity<List<ProcessInstanceDto>> getProcessInstances(@PathVariable("key") String key,
+                                                                        @PathVariable("tenant-id") String tenantId) {
         List<CamundaEngineRestClient.ProcessInstanceRef> refs =
                 camundaEngineRestClient.listRunningProcessInstancesByDefinitionKey(key, tenantId);
 
@@ -148,7 +124,6 @@ public class WorkflowController {
 
     @GetMapping("variables/{key}")
     public ResponseEntity<Void> getVariables(@PathVariable("key") Long key) {
-        // return ResponseEntity.ok(insuranceWorkflowService.getVariables(key));
         return null;
     }
 
@@ -173,7 +148,7 @@ public class WorkflowController {
 
     /**
      * Returns running process instances filtered by processDefinitionKey, tenant and version.
-     * Example: /workflows/process-instances/insurance_showcase/tenant-id/insurance/version/3
+     * Example: /workflows/process-instances/novelty_batch/tenant-id/screening/version/3
      */
     @GetMapping("process-instances/{processDefinitionKey}/tenant-id/{tenant-id}/version/{version}")
     public ResponseEntity<List<ProcessInstanceDto>> getProcessInstancesByKeyTenantAndVersion(
@@ -212,32 +187,14 @@ public class WorkflowController {
 
     /**
      * Combined endpoint to fetch a specific version of a BPMN diagram and all running process instances on that version.
-     * Uses tenant "insurance" by default.
      */
-    @GetMapping("diagram/{key}/version/{version}")
+    @GetMapping("diagram/{key}/tenant-id/{tenant-id}/version/{version}")
     public ResponseEntity<VersionedDiagramResponse> getDiagramAndInstancesByVersion(@PathVariable("key") String key,
+                                                                                    @PathVariable("tenant-id") String tenantId,
                                                                                     @PathVariable("version") int version) {
-        String tenantId = "insurance";
         String xml = camundaEngineRestClient.getProcessDefinitionXmlByKeyAndVersion(key, version, tenantId);
         List<String> running = camundaEngineRestClient.listRunningProcessInstanceIdsByKeyAndVersion(key, version, tenantId);
         return ResponseEntity.ok(new VersionedDiagramResponse(xml, running));
-    }
-
-//    @GetMapping("requested-contract/{aggregateId}")
-//    public ResponseEntity<RequestedContractDto> getRequestedContracts(@PathVariable("aggregateId") UUID aggregateId) {
-//        return ResponseEntity.ok(insuranceService.getRequestedContractsDto(aggregateId));
-//    }
-
-    @PostMapping("start-cib/{variable}")
-    public ResponseEntity<Void> startCIB(@PathVariable("variable") String variable, @RequestBody StartProcessBody body) {
-        restClient.startCib7Process("insurance_showcase", body, "insurance");
-        return ResponseEntity.accepted().build();
-    }
-
-    @ExceptionHandler(MonthlyIncomeException.class)
-    public ResponseEntity<Message> handleMonthlyIncomeException(MonthlyIncomeException monthlyIncomeException) {
-        log.info(monthlyIncomeException.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Message(monthlyIncomeException.getMessage()));
     }
 
 }

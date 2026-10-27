@@ -39,7 +39,7 @@
                     {{ definition.runningInstances }}
                 </div>
                 <div class="col">
-                    <a [routerLink]="['/workflow', definition.key, definition.version]">
+                    <a [routerLink]="['/workflow', definition.tenantId, definition.key, definition.version]">
                         <i class="bi bi-arrow-left-circle"></i>
                     </a>
                 </div>

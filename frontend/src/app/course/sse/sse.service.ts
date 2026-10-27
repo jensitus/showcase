@@ -1,7 +1,6 @@
 import {Injectable, NgZone} from '@angular/core';
 import {Observable} from "rxjs";
 import {TaskListEntryDto} from "../../task/task-list-entry-dto";
-import {Insurance} from "../../insurance/insurance";
 import {Submission} from "../../submission/submission";
 
 @Injectable({
@@ -29,26 +28,6 @@ export class SseService {
         // console.log(event);
         const taskListEntryDto: TaskListEntryDto = JSON.parse(event.data);
         observer.next(taskListEntryDto);
-      }
-    })
-  }
-
-  createInsuranceEventSource(url: string): Observable<Insurance> {
-    console.log(url);
-    const eventSource = new EventSource(url);
-    return new Observable((observer: {
-      next: (arg0: any) => void;
-    })  => {
-      eventSource.onopen = op => {
-        console.log(op);
-      }
-      eventSource.onmessage = event => {
-        this.zone.run(() => {
-          console.log(event);
-        })
-        // console.log(event);
-        const insurance: Insurance = JSON.parse(event.data);
-        observer.next(insurance);
       }
     })
   }

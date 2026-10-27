@@ -5,10 +5,6 @@ import {TaskDetailComponent} from "./newtask/task-detail/task-detail.component";
 import {WorkflowListComponent} from "./workflow/workflow-list/workflow-list.component";
 import {WorkflowComponent} from "./workflow/workflow.component";
 import {TaskComponent} from "./task/task.component";
-import {CreateCustomerComponent} from "./customer/create-customer/create-customer.component";
-import {CustomerListComponent} from "./customer/customer-list/customer-list.component";
-import {CustomerComponent} from "./customer/customer/customer.component";
-import {RequestInsuranceComponent} from "./insurance/request-insurance/request-insurance.component";
 import {SseComponent} from "./course/sse/sse.component";
 import {LoginComponent} from "./auth/login/login.component";
 import {RegisterComponent} from "./auth/register/register.component";
@@ -17,13 +13,11 @@ import {ForgotPasswordComponent} from "./auth/forgot-password/forgot-password.co
 import {ResetPasswordComponent} from "./auth/reset-password/reset-password.component";
 import {ChangePasswordComponent} from "./auth/change-password/change-password.component";
 import {UserProfileComponent} from "./auth/user-profile/user-profile.component";
-import {CompleteProfileComponent} from "./auth/complete-profile/complete-profile.component";
 import {BpmnDeploymentComponent} from "./workflow/bpmn-deployment/bpmn-deployment.component";
 import {adminGuard} from "./auth/admin.guard";
 import {AdminUsersComponent} from "./admin/admin-users/admin-users.component";
 import {SubmitAbstractComponent} from "./submission/submit-abstract/submit-abstract.component";
 import {SubmissionListComponent} from "./submission/submission-list/submission-list.component";
-import {InsuranceShowcaseComponent} from "./insurance/insurance-showcase/insurance-showcase.component";
 import {ScreeningDashboardComponent} from "./screening/screening-dashboard.component";
 
 export const routes: Routes = [
@@ -32,11 +26,7 @@ export const routes: Routes = [
     {path: 'new-task-list', component: NewTaskListComponent},
     {path: 'tasks/:id', component: TaskDetailComponent},
     {path: 'workflow-list', component: WorkflowListComponent},
-    {path: 'workflow/:id/:version', component: WorkflowComponent},
-    {path: 'create-customer', component: CreateCustomerComponent},
-    {path: 'customers', component: CustomerListComponent},
-    {path: 'customers/:id', component: CustomerComponent},
-    {path: 'request-insurance/:customerId/:insuranceType', component: RequestInsuranceComponent},
+    {path: 'workflow/:tenantId/:id/:version', component: WorkflowComponent},
     {path: 'sse', component: SseComponent},
     {path: 'login', component: LoginComponent},
     {path: 'register', component: RegisterComponent},
@@ -45,11 +35,9 @@ export const routes: Routes = [
     {path: 'reset-password', component: ResetPasswordComponent},
     {path: 'change-password', component: ChangePasswordComponent},
     {path: 'profile', component: UserProfileComponent},
-    {path: 'complete-profile', component: CompleteProfileComponent},
     {path: 'deploy', component: BpmnDeploymentComponent, canActivate: [adminGuard]},
     {path: 'admin/users', component: AdminUsersComponent, canActivate: [adminGuard]},
     {path: 'submissions', component: SubmissionListComponent},
     {path: 'submit-abstract', component: SubmitAbstractComponent},
-    {path: 'insurance-showcase', component: InsuranceShowcaseComponent},
     {path: 'screening', component: ScreeningDashboardComponent},
 ];

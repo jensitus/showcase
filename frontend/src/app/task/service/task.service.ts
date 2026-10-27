@@ -6,7 +6,7 @@ import {environment} from "../../../environments/environment";
 import {IAddAssignee} from "../task.component";
 import {CompleteTaskEvent} from "../CompleteTaskEvent";
 import {TaskListEntryDto} from "../task-list-entry-dto";
-import {Message} from "../../customer/message";
+import {Message} from "../../shared/message";
 
 @Injectable({
   providedIn: 'root'
@@ -35,10 +35,6 @@ export class TaskService {
 
   addAssignee(addAssignee: IAddAssignee): Observable<IAddAssignee> {
     return this.http.post<IAddAssignee>(this.cib + '/tasks/add-assignee', addAssignee);
-  }
-
-  getTasksByCustomer(customerName: string): Observable<TaskListEntryDto[]> {
-    return this.http.get<TaskListEntryDto[]>(this.cib + '/tasks/byCustomer/' + customerName);
   }
 
   removeAssignee(taskId: string): Observable<Message> {

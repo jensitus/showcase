@@ -32,7 +32,7 @@ export class AppComponent {
         this.loginService.scheduleTokenExpiryFromStorage();
     }
 
-    private readonly noSidebarRoutes = ['/login', '/register', '/verify-email', '/complete-profile', '/forgot-password', '/reset-password', '/change-password'];
+    private readonly noSidebarRoutes = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password', '/change-password'];
 
     private readonly currentUrl = toSignal(
         this.router.events.pipe(

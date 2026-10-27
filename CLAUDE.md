@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A workflow showcase consisting of two independently running applications:
 
-- **`workflow/`** — Spring Boot 3.2.5 (Java 17) backend: manages customers, insurance applications, and conference abstract submissions. Integrates with CIB Seven (a Camunda 7 fork) as the external BPMN process engine.
+- **`workflow/`** — Spring Boot 3.2.5 (Java 17) backend: conference abstract submissions (call for papers) and the novelty batch screening. Integrates with CIB Seven (a Camunda 7 fork) as the external BPMN process engine.
 - **`frontend/`** — Angular 20 SPA: task list, BPMN diagram viewer, and form rendering for workflow user tasks.
 
 Infrastructure: PostgreSQL (port 5555 via Docker Compose), CIB Seven engine (port 7001, run separately).
@@ -44,9 +44,8 @@ CIB Seven must be started separately (it is not in docker-compose.yaml). Default
 
 | Package | Responsibility |
 |---|---|
-| `customer/` | Customer CRUD |
-| `insurance/` | Insurance application persistence + state |
 | `submission/` | Conference abstract submission persistence + state |
+| `screening/` | Novelty batch runner: external-task workers calling the novelty pipeline API (see SCREENING_RUNBOOK.md) |
 | `workflow/` | All CIB Seven integration: REST client, task lifecycle, process management |
 | `security/` | JWT auth, API key auth, user management, email verification |
 | `sse/` | Server-Sent Events for real-time frontend updates |
@@ -54,10 +53,15 @@ CIB Seven must be started separately (it is not in docker-compose.yaml). Default
 
 ### Two BPMN processes
 
-1. **Insurance** (`insurance.bpmn`) — process key `insurance_showcase`, tenant `insurance`
-2. **Abstract Submission** (`abstract-submission.bpmn`) — process key `abstract_submission_lifecycle`, tenant `cfp`
+1. **Abstract Submission** (`abstract-submission.bpmn`) — process key `abstract_submission_lifecycle`, tenant `cfp`
+2. **Novelty Batch Screening** (`novelty_batch.bpmn`) — process key `novelty_batch`, tenant `screening`
 
 Both BPMN files live in `workflow/src/main/resources/processes8/`.
+
+The insurance showcase (process `insurance_showcase`, tenant `insurance`, with the customer
+module) was removed; its last state is the tag `insurance-showcase-v1` (also branch
+`archive/insurance`). Infrastructure names still say "insurance" (k8s namespace, image names,
+`insurance-secrets`, the Postgres user) because renaming them means migrating the live deployment.
 
 ### CIB Seven integration pattern
 
@@ -65,14 +69,14 @@ This backend acts as both process starter and task handler:
 
 1. **Starting a process**: `RestClientService.startCib7Process()` POSTs to the CIB Seven REST API. For submissions, `processService.preCreateProcess()` is called *before* starting the engine so that the early task callback can find the process entity.
 2. **Task callbacks**: CIB Seven calls back `POST /api/tasks` (handled by `TaskController`) when a user task is created. `TaskService.createTask()` saves the task locally and runs task enrichers.
-3. **Task enrichers**: `TaskEnricher` implementations (`InsuranceTaskEnricher`, `CfpTaskEnricher`) populate `additionalInfo`, `config`, and `configData` JSON fields on the task so the frontend can render it generically.
-4. **External tasks**: `FetchAndLockService` polls CIB Seven for service tasks; `InsuranceExternalTaskService` / `CfpExternalTaskService` process and complete them.
+3. **Task enrichers**: `TaskEnricher` implementations (`CfpTaskEnricher`) populate `additionalInfo`, `config`, and `configData` JSON fields on the task so the frontend can render it generically.
+4. **External tasks**: `FetchAndLockService` polls CIB Seven for service tasks; `CfpExternalTaskService` and `ScreeningBatchService` process and complete them.
 5. **Completing tasks**: Frontend POSTs to `/api/workflows/complete-task`; backend forwards completion to CIB Seven via `CibSevenRestClient`.
 
 ### Task DTO structure
 
 `TaskDto` carries three JSON-serialized fields the frontend renders generically:
-- `additionalInfo` — display-only key/value groups (e.g. customer data, risk assessment)
+- `additionalInfo` — display-only key/value groups (e.g. submission data, review summary)
 - `config` — which input fields are required and their types (`text`, `textarea`, `select`)
 - `configData` — default values and display order for each input field
 
@@ -80,8 +84,8 @@ This backend acts as both process starter and task handler:
 
 - `app/workflow/` — BPMN viewer (bpmn-js), process list, deployment
 - `app/task/` — generic task form renderer, task-specific components
-- `app/insurance/` — insurance application flow
 - `app/submission/` — abstract submission flow
+- `app/screening/` — novelty screening dashboard (`/screening`)
 - `app/auth/` — login, register, JWT handling, email verification
 - `app/shared/` — navigation, layout, i18n helpers
 

@@ -24,13 +24,13 @@ export class NewTaskListComponent implements OnInit {
     private loginService = inject(LoginService);
 
     tenants = [
-        { id: 'insurance', label: 'Insurance Showcase' },
-        { id: 'cfp',       label: 'Call for Papers (CFP)' }
+        { id: 'cfp',       label: 'Call for Papers (CFP)' },
+        { id: 'screening', label: 'Novelty Screening' }
     ];
 
     // Signals for reactive state management
     tasks = signal<TaskDto[]>([]);
-    tenantId = signal<string>('insurance');
+    tenantId = signal<string>('cfp');
     currentPage = signal<number>(0);
     pageSize = signal<number>(10);
     totalElements = signal<number>(0);
@@ -56,7 +56,7 @@ export class NewTaskListComponent implements OnInit {
             this.currentUsername.set(user.username);
         }
         const params = this.route.snapshot.queryParamMap;
-        this.tenantId.set(params.get('tenantId') ?? localStorage.getItem('task_list_tenant') ?? 'insurance');
+        this.tenantId.set(params.get('tenantId') ?? localStorage.getItem('task_list_tenant') ?? 'cfp');
         this.filterMode.set((params.get('filterMode') as TaskFilterMode) ?? (localStorage.getItem('task_list_filter_mode') as TaskFilterMode) ?? 'my-tasks');
         this.loadTasks();
     }

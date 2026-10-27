@@ -51,7 +51,6 @@ public class SecurityConfig {
                 requests.requestMatchers("/api/auth/resend-verification").permitAll();
                 requests.requestMatchers("/api/auth/forgot-password").permitAll();
                 requests.requestMatchers("/api/auth/reset-password").permitAll();
-                requests.requestMatchers("/server-send-insurance").permitAll();
                 requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
                 requests.anyRequest().authenticated();
             })

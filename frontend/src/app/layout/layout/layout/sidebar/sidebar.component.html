@@ -7,15 +7,6 @@
       <span>{{ 'NAV.TASKS' | translate }}</span>
     </a>
 
-    <div class="list-group-item list-group-item-secondary small text-uppercase fw-bold py-1 px-3 mt-2" style="pointer-events: none;">
-      <i class="bi bi-shield-check"></i>&nbsp;
-      <span>{{ 'NAV.INSURANCE_SECTION' | translate }}</span>
-    </div>
-    <a [routerLink]="['/insurance-showcase']" [routerLinkActive]="['router-link-active']" class="list-group-item"
-       [attr.data-label]="'NAV.INSURANCE_SHOWCASE' | translate">
-      <i class="bi bi-house-heart"></i>&nbsp;
-      <span>{{ 'NAV.INSURANCE_SHOWCASE' | translate }}</span>
-    </a>
 
     <div class="list-group-item list-group-item-secondary small text-uppercase fw-bold py-1 px-3 mt-2" style="pointer-events: none;">
       <i class="bi bi-journal-text"></i>&nbsp;
@@ -54,11 +45,6 @@
             <span>{{ 'NAV.WORKFLOWS' | translate }}</span>
         </a>
 
-        <a [routerLink]="['/customers']" [routerLinkActive]="['router-link-active']" class="list-group-item"
-           [attr.data-label]="'NAV.CUSTOMERS' | translate">
-            <i class="bi bi-people"></i>&nbsp;
-            <span>{{ 'NAV.CUSTOMERS' | translate }}</span>
-        </a>
     }
       @if (!isLoggedIn()) {
           <a [routerLink]="['/login']" [routerLinkActive]="['router-link-active']" class="list-group-item"

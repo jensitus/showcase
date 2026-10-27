@@ -14,11 +14,11 @@ export class BpmnDeploymentComponent {
     private deploymentService = inject(DeploymentService);
 
     deploymentName = signal('');
-    tenantId = signal('insurance');
+    tenantId = signal('cfp');
 
     readonly tenants = [
-        { id: 'insurance', label: 'Insurance Showcase' },
         { id: 'cfp',       label: 'Call for Papers (CFP)' },
+        { id: 'screening', label: 'Novelty Screening' },
     ];
     selectedFile = signal<File | null>(null);
     status = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
