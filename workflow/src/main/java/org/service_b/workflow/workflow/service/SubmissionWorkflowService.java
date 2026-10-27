@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,6 +39,7 @@ public class SubmissionWorkflowService {
                 request.getTitle(),
                 request.getAuthors(),
                 request.getAbstractText(),
+                request.getSections(),
                 request.getTopic(),
                 request.getSubmitterEmail(),
                 createdBy
@@ -86,20 +88,29 @@ public class SubmissionWorkflowService {
     }
 
     private Map<String, Object> buildSubmissionAdditionalInfo(Submission submission) {
-        Map<String, Object> info = new HashMap<>();
+        Map<String, Object> info = new LinkedHashMap<>();   // Submission, then Content
 
-        Map<String, String> paperDetails = new HashMap<>();
+        Map<String, String> paperDetails = new LinkedHashMap<>();
         paperDetails.put("Title", submission.getTitle());
         paperDetails.put("Authors", submission.getAuthors());
         paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
         paperDetails.put("Submitted by", submission.getSubmitterEmail());
         info.put("Submission", paperDetails);
 
-        Map<String, String> abstractContent = new HashMap<>();
-        abstractContent.put("Abstract", submission.getAbstractText());
-        info.put("Content", abstractContent);
+        info.put("Content", abstractContent(submission));
 
         return info;
+    }
+
+    /** The abstract for a reviewer task: section by section in their order, or the one text of an older submission. */
+    private static Map<String, String> abstractContent(Submission submission) {
+        Map<String, String> content = new LinkedHashMap<>();
+        if (submission.getSections().isEmpty()) {
+            content.put("Abstract", submission.getAbstractText());
+        } else {
+            submission.getSections().forEach(s -> content.put(s.getName(), s.getContent()));
+        }
+        return content;
     }
 
     private Map<String, Object> buildReviewConfig() {
@@ -168,16 +179,14 @@ public class SubmissionWorkflowService {
 
     /** Blind review — title and abstract only, no author or submitter info. */
     private Map<String, Object> buildBlindAdditionalInfo(Submission submission) {
-        Map<String, Object> info = new HashMap<>();
+        Map<String, Object> info = new LinkedHashMap<>();   // Submission, then Content
 
-        Map<String, String> paperDetails = new HashMap<>();
+        Map<String, String> paperDetails = new LinkedHashMap<>();
         paperDetails.put("Title", submission.getTitle());
         paperDetails.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
         info.put("Submission", paperDetails);
 
-        Map<String, String> abstractContent = new HashMap<>();
-        abstractContent.put("Abstract", submission.getAbstractText());
-        info.put("Content", abstractContent);
+        info.put("Content", abstractContent(submission));
 
         return info;
     }
@@ -412,15 +421,15 @@ public class SubmissionWorkflowService {
 
     private Map<String, Object> buildSessionAdditionalInfo(Submission submission, String format,
                                                             String sessionName, String sessionDatetime, String sessionRoom) {
-        Map<String, Object> info = new HashMap<>();
+        Map<String, Object> info = new LinkedHashMap<>();
 
-        Map<String, String> paper = new HashMap<>();
+        Map<String, String> paper = new LinkedHashMap<>();
         paper.put("Title", submission.getTitle());
         paper.put("Authors", submission.getAuthors());
         paper.put("Topic", submission.getTopic() != null ? submission.getTopic().name() : "—");
         info.put("Submission", paper);
 
-        Map<String, String> session = new HashMap<>();
+        Map<String, String> session = new LinkedHashMap<>();
         session.put("Format",    format != null ? format : "—");
         session.put("Session",   sessionName != null ? sessionName : "—");
         session.put("Date/Time", sessionDatetime != null ? sessionDatetime : "—");

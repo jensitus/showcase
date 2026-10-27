@@ -21,4 +21,6 @@ databaseChangeLog:
   - include:
       file: /db/changelog/submission.yaml
   - include:
+      file: /db/changelog/submission-section.yaml
+  - include:
       file: /db/changelog/screening-chunk.yaml

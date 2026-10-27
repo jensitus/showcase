@@ -1,6 +1,7 @@
 package org.service_b.workflow.submission.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class SubmissionDto {
@@ -8,6 +9,8 @@ public class SubmissionDto {
     private String title;
     private String authors;
     private String abstractText;
+    /** In order; empty for a submission from before the sectioned form. */
+    private List<SectionDto> sections = List.of();
     private String topic;
     private String submitterEmail;
     private Integer submissionNumber;
@@ -52,4 +55,7 @@ public class SubmissionDto {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<SectionDto> getSections() { return sections; }
+    public void setSections(List<SectionDto> sections) { this.sections = sections; }
 }

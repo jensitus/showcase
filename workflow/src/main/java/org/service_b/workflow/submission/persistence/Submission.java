@@ -7,6 +7,8 @@ import org.service_b.workflow.workflow.domain.ResponsibleForType;
 import org.service_b.workflow.workflow.persistence.entity.Processable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -30,8 +32,14 @@ public class Submission implements Processable {
     @Column(name = "authors")
     String authors;
 
+    /** The whole abstract as one text; for a sectioned submission generated from the sections (AbstractSection.flatten). */
     @Column(name = "abstract_text", length = 8192)
     String abstractText;
+
+    /** Empty for submissions from before the sectioned form: those have only abstract_text. */
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("orderNr ASC")
+    List<SubmissionSection> sections = new ArrayList<>();
 
     @Setter
     @Column(name = "topic")
@@ -77,6 +85,12 @@ public class Submission implements Processable {
     public void setAuthors(String authors) { this.authors = authors; }
 
     public String getAbstractText() { return abstractText; }
+    public List<SubmissionSection> getSections() { return sections; }
+    public void setSections(List<SubmissionSection> sections) {
+        this.sections.clear();
+        sections.forEach(s -> s.setSubmission(this));
+        this.sections.addAll(sections);
+    }
     public void setAbstractText(String abstractText) { this.abstractText = abstractText; }
 
     public SubmissionTopic getTopic() { return topic; }

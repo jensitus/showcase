@@ -47,14 +47,14 @@
             <div class="form-grid">
                 @if (task()?.additionalInfo) {
 
-                    @for (info of additionalInfo | keyvalue; track info) {
+                    @for (info of additionalInfo | keyvalue: keepOrder; track info) {
                         <div class="form-column">
                             <div class="info-section">
                                 <h3>
                                     {{ getCardHeader(info.key) }}
                                 </h3>
 
-                                @for (data of info.value | keyvalue; track data) {
+                                @for (data of info.value | keyvalue: keepOrder; track data) {
                                     <div class="info-item">
                                         <label>{{ data.key }}:</label>
                                         <div class="info-value">{{ data.value }}</div>

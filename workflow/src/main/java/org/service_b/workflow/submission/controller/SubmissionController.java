@@ -3,6 +3,7 @@ package org.service_b.workflow.submission.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.submission.dto.CreateSubmissionRequest;
+import org.service_b.workflow.submission.dto.SectionDto;
 import org.service_b.workflow.submission.dto.SubmissionDto;
 import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.service.SubmissionService;
@@ -43,6 +44,9 @@ public class SubmissionController {
         dto.setTitle(submission.getTitle());
         dto.setAuthors(submission.getAuthors());
         dto.setAbstractText(submission.getAbstractText());
+        dto.setSections(submission.getSections().stream()
+                .map(s -> new SectionDto(s.getShortname(), s.getName(), s.getContent()))
+                .toList());
         dto.setTopic(submission.getTopic() != null ? submission.getTopic().name() : null);
         dto.setSubmitterEmail(submission.getSubmitterEmail());
         dto.setSubmissionNumber(submission.getSubmissionNumber());

@@ -39,6 +39,8 @@ export class TaskDetailComponent implements OnInit {
 
     taskForm: FormGroup;
     additionalInfo: Map<string, Map<string, string>>;
+    /** keyvalue sorts by key; the backend sends the info in reading order (abstract sections!), so keep it. */
+    readonly keepOrder = (): number => 0;
     data: any;
     configData: TaskConfig;
     deliverFormValue: object;

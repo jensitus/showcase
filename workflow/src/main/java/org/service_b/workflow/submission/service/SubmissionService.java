@@ -1,8 +1,11 @@
 package org.service_b.workflow.submission.service;
 
 import lombok.RequiredArgsConstructor;
+import org.service_b.workflow.submission.dto.SectionDto;
+import org.service_b.workflow.submission.persistence.AbstractSection;
 import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.persistence.SubmissionRepository;
+import org.service_b.workflow.submission.persistence.SubmissionSection;
 import org.service_b.workflow.submission.persistence.SubmissionState;
 import org.service_b.workflow.submission.persistence.SubmissionTopic;
 import org.service_b.workflow.sse.EventService;
@@ -19,16 +22,28 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final EventService eventService;
 
+    /**
+     * @param sections the abstract by section (validated here, HTTP 400 on a violation); when
+     *                 given, abstract_text is generated from them and {@code abstractText} is
+     *                 ignored. Null or empty: the old one-field abstract.
+     */
     public Submission saveSubmission(String title,
                                      String authors,
                                      String abstractText,
+                                     List<SectionDto> sections,
                                      String topic,
                                      String submitterEmail,
                                      String createdBy) {
         Submission submission = new Submission();
         submission.setTitle(title);
         submission.setAuthors(authors);
-        submission.setAbstractText(abstractText);
+        if (sections != null && !sections.isEmpty()) {
+            List<SubmissionSection> entities = AbstractSection.toEntities(sections);
+            submission.setSections(entities);
+            submission.setAbstractText(AbstractSection.flatten(entities));
+        } else {
+            submission.setAbstractText(abstractText);
+        }
         submission.setTopic(SubmissionTopic.valueOf(topic));
         submission.setSubmitterEmail(submitterEmail);
         submission.setCreatedBy(createdBy);

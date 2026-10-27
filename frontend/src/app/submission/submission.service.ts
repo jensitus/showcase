@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {Submission} from './submission';
+import {AbstractSection} from './abstract-sections';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,7 @@ export class SubmissionService {
   createSubmission(request: {
     title: string;
     authors: string;
-    abstractText: string;
+    sections: AbstractSection[];
     topic: string;
     submitterEmail: string;
   }): Observable<Submission> {

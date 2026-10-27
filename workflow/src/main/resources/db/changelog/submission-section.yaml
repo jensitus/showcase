@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: submission-section
+      author: jensitus
+      comment: The abstract by section (Purpose, Methods, Results, ...); older submissions have none, only abstract_text.
+      changes:
+        - createTable:
+            tableName: submission_section
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: submission_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_submission_section_submission
+                    references: submission(id)
+                    deleteCascade: true
+              - column:
+                  name: order_nr
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shortname
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: varchar(4000)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: submission_section
+            indexName: idx_submission_section_submission
+            columns:
+              - column:
+                  name: submission_id

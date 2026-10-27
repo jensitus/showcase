@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.service_b.workflow.submission.dto.CreateSubmissionRequest;
+import org.service_b.workflow.submission.dto.SectionDto;
 import org.service_b.workflow.submission.persistence.Submission;
 import org.service_b.workflow.submission.persistence.SubmissionTopic;
 import org.service_b.workflow.submission.service.SubmissionService;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,6 +118,7 @@ class SubmissionWorkflowServiceTest {
 
         @Override
         public Submission saveSubmission(String title, String authors, String abstractText,
+                                         List<SectionDto> sections,
                                          String topic, String submitterEmail, String createdBy) {
             Submission s = new Submission();
             s.setId(UUID.randomUUID());
