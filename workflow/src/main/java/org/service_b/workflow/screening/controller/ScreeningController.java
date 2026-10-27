@@ -63,6 +63,8 @@ public class ScreeningController {
         if (request.getCorpus() != null && !request.getCorpus().isBlank()) {
             variables.put("corpus", Map.of("value", request.getCorpus(), "type", "String"));
         }
+        // Always set: the gateway after screening routes on it.
+        variables.put("askNew", Map.of("value", request.isAskNew(), "type", "Boolean"));
 
         StartProcessBody body = new StartProcessBody();
         body.setVariables(variables);
@@ -70,9 +72,9 @@ public class ScreeningController {
 
         ProcessInstanceWithVariableDto process =
                 restClientService.startCib7Process("novelty_batch", body, noveltyProperties.getTenant());
-        log.info("[novelty_batch] started process {} for export {} (beforeYear={})",
+        log.info("[novelty_batch] started process {} for export {} (beforeYear={}, askNew={})",
                 process.getId(), request.getExportPath(),
-                request.getBeforeYear() == null ? "none" : request.getBeforeYear());
+                request.getBeforeYear() == null ? "none" : request.getBeforeYear(), request.isAskNew());
 
         return ResponseEntity.ok(Map.of("processInstanceId", process.getId()));
     }

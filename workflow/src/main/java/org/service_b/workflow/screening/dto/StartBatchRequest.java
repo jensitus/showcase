@@ -27,4 +27,12 @@ public class StartBatchRequest {
      * but wrong for a congress run — see {@link ScreenRequest#getCorpus()}.
      */
     private String corpus;
+
+    /**
+     * Also run the second step: the pipeline's larger model (35B) asks of every abstract
+     * screening let through whether it adds anything new. Catches far more of what
+     * reviewers call "not new" (92.4% against 64.8%), but takes ~40 s per unflagged
+     * abstract — hours for a demo batch, days for a congress — so it is opt-in.
+     */
+    private boolean askNew;
 }

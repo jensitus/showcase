@@ -79,6 +79,18 @@ export class ScreeningDashboardComponent implements OnInit {
 
   readonly duplicates = computed(() => this.detail()?.verdictCounts?.['likely_duplicate'] ?? 0);
 
+  /** The larger model's step, when the batch ran it: how many asked, and what it flagged. */
+  readonly llm = computed(() => {
+    const c = this.detail()?.llmCounts ?? {};
+    const asked = Object.values(c).reduce((a, b) => a + b, 0);
+    return asked ? { asked, no: c['no'] ?? 0, partly: c['partly'] ?? 0 } : null;
+  });
+
+  /** Badge text for a row the larger model flagged, or null. */
+  llmLabel(answer: string): string | null {
+    return answer === 'no' ? 'LLM: nothing new' : answer === 'partly' ? 'LLM: partly new' : null;
+  }
+
   readonly segments = computed<Segment[]>(() => {
     const d = this.detail();
     if (!d || !d.total) return [];

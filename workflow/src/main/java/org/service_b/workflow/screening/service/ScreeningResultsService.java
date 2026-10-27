@@ -64,12 +64,16 @@ public class ScreeningResultsService {
         List<Map<String, Object>> reports = mapper.readValue(
                 dir.resolve("results.json").toFile(), new TypeReference<>() { });
         Map<String, Integer> counts = new LinkedHashMap<>();
+        Map<String, Integer> llmCounts = new LinkedHashMap<>();
         for (Map<String, Object> r : reports) {
             counts.merge(String.valueOf(r.get("verdict")), 1, Integer::sum);
+            if (r.get("novelty_q") instanceof Map<?, ?> q && q.get("adds_new") != null) {
+                llmCounts.merge(String.valueOf(q.get("adds_new")), 1, Integer::sum);
+            }
         }
         List<FlaggedRow> rows = readFlagged(dir.resolve("flagged.csv"));
         return new BatchDetail(batchId, reports.size(), rows.size(), counts, rows,
-                cutoffOf(reports));
+                cutoffOf(reports), llmCounts);
     }
 
     /**
@@ -108,7 +112,8 @@ public class ScreeningResultsService {
             }
             List<String> f = parseCsvLine(lines.get(i));
             rows.add(new FlaggedRow(cell(f, 0), cell(f, 1), cell(f, 2), cell(f, 3),
-                    cell(f, 4), cell(f, 5), cell(f, 6), cell(f, 7)));
+                    cell(f, 4), cell(f, 5), cell(f, 6), cell(f, 7),
+                    cell(f, 8), cell(f, 9)));      // "" in reports from before the 35B step
         }
         return rows;
     }

@@ -48,6 +48,14 @@
       </p>
     }
 
+    @if (llm(); as l) {
+      <p class="scope">
+        The larger model was asked about the <strong>{{ l.asked }}</strong> abstracts screening
+        let through: <strong>{{ l.no }}</strong> add nothing new, <strong>{{ l.partly }}</strong>
+        only partly — both are counted as flagged above.
+      </p>
+    }
+
     <!-- Verdict composition -->
     <div class="panel">
       <h2>Verdict breakdown</h2>
@@ -87,7 +95,12 @@
               <tr>
                 <td class="title">{{ r.title }}</td>
                 <td>
-                  <span class="badge" [style.--c]="color(r.verdict)">{{ label(r.verdict) }}</span>
+                  @if (r.verdict !== 'likely_novel' || !llmLabel(r.llmAddsNew)) {
+                    <span class="badge" [style.--c]="color(r.verdict)">{{ label(r.verdict) }}</span>
+                  }
+                  @if (llmLabel(r.llmAddsNew); as l) {
+                    <span class="badge" [style.--c]="'#5b6b8c'">{{ l }}</span>
+                  }
                 </td>
                 <td class="num">{{ r.similarity }}</td>
                 <td class="prior">{{ r.matchedPriorTitle }}<span class="year"> · {{ r.matchedYear }}</span></td>
@@ -99,7 +112,12 @@
               </tr>
               @if (isExpanded(r.submissionId)) {
                 <tr class="rationale-row">
-                  <td colspan="5"><div class="rationale">{{ r.rationale }}</div></td>
+                  <td colspan="5">
+                    <div class="rationale">{{ r.rationale }}</div>
+                    @if (r.llmSays) {
+                      <div class="rationale"><strong>Larger model:</strong> {{ r.llmSays }}</div>
+                    }
+                  </td>
                 </tr>
               }
             }

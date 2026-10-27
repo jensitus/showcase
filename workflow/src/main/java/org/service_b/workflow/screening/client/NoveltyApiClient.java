@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Thin client for the novelty pipeline API on the Spark. The pipeline already does
@@ -19,6 +20,8 @@ import java.util.List;
  *   POST /screen        -> { job_id, total }
  *   GET  /jobs/{job_id} -> { status, done, total, results[] }
  *   GET  /health        -> liveness
+ *   POST /ask-new       -> { job_id, total }   (the 35B step, after screening)
+ *   GET  /ask-new/{id}  -> { status, done, total, errors, results[] }
  */
 @Component
 @Slf4j
@@ -61,6 +64,22 @@ public class NoveltyApiClient {
     /** Poll a screening job. Caller loops until {@link JobStatus#isDone()}. */
     public JobStatus getJob(String jobId) {
         return restTemplate.getForObject(props.getApiBaseUrl() + "/jobs/" + jobId, JobStatus.class);
+    }
+
+    /**
+     * Queue the 35B "adds anything new?" question for screened submissions. Each item is
+     * {@code {submission, results}}: the submission and its screening result(s). The
+     * pipeline skips the ones screening flagged and answers the rest.
+     */
+    public ScreenResponse askNew(List<Map<String, Object>> items) {
+        String url = props.getApiBaseUrl() + "/ask-new";
+        log.info("POST {} ({} submissions)", url, items.size());
+        return restTemplate.postForObject(url, Map.of("items", items), ScreenResponse.class);
+    }
+
+    /** Poll an ask job. Caller loops until {@link JobStatus#isDone()}. */
+    public JobStatus getAskJob(String jobId) {
+        return restTemplate.getForObject(props.getApiBaseUrl() + "/ask-new/" + jobId, JobStatus.class);
     }
 
     /** Liveness check before starting a long run. */

@@ -9,7 +9,7 @@ import java.util.Map;
 /** Response from GET /jobs/{id}: poll until {@link #isTerminal()}. */
 @Data
 public class JobStatus {
-    private String status;   // "running" | "done" | "error"
+    private String status;   // "running" | "done" | "error"; an ask job also "cancelled"
     private int done;
     private int total;
     /** Each entry is a NoveltyReport (verdict / novelty_score / rationale / top_matches). */
@@ -33,12 +33,17 @@ public class JobStatus {
         return "error".equals(status);
     }
 
+    /** Someone stopped the job in the pipeline (POST /ask-new/{id}/cancel); it will not grow. */
+    public boolean isCancelled() {
+        return "cancelled".equals(status);
+    }
+
     /**
      * Whether polling can stop. Without this a failed job looks identical to a slow one,
      * so the poller would wait out the whole chunk deadline (30 min by default) before
      * reporting a failure the pipeline already knew about.
      */
     public boolean isTerminal() {
-        return isDone() || isError();
+        return isDone() || isError() || isCancelled();
     }
 }

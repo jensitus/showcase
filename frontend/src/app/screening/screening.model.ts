@@ -13,6 +13,10 @@ export interface FlaggedRow {
   matchedYear: string;
   similarity: string;
   rationale: string;
+  /** The larger model's "adds anything new?" answer: 'yes' | 'partly' | 'no', '' if not asked. */
+  llmAddsNew: string;
+  /** Its one sentence: what is new, or why nothing is. */
+  llmSays: string;
 }
 
 export interface BatchDetail {
@@ -27,4 +31,6 @@ export interface BatchDetail {
    * means, so it is displayed rather than assumed.
    */
   beforeYear: number | null;
+  /** The larger model's answers (yes / partly / no -> count); empty when it was not run. */
+  llmCounts: Record<string, number>;
 }

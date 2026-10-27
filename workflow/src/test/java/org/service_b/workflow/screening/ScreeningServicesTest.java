@@ -74,4 +74,36 @@ class ScreeningServicesTest {
         assertTrue(csv.get(1).contains("Prior A"));        // matched prior title
         assertTrue(csv.get(2).startsWith("s2,possible_overlap"));
     }
+
+    @Test
+    void reportFlagsWhatTheLargerModelFoundNotNew(@TempDir Path dir) throws Exception {
+        // s1 flagged by screening (skipped by the 35B), s2..s4 unflagged and asked:
+        // "no" and "partly" are flagged (after screening's flags), "yes" is not.
+        Files.writeString(dir.resolve("submissions.jsonl"),
+                "{\"id\":\"s1\",\"title\":\"T1\"}\n{\"id\":\"s2\",\"title\":\"T2\"}\n" +
+                "{\"id\":\"s3\",\"title\":\"T3\"}\n{\"id\":\"s4\",\"title\":\"T4\"}\n");
+        Files.writeString(dir.resolve("results.jsonl"),
+                "{\"submission_id\":\"s1\",\"verdict\":\"possible_overlap\",\"novelty_score\":0.4,\"top_matches\":[]}\n" +
+                "{\"submission_id\":\"s2\",\"verdict\":\"likely_novel\",\"novelty_score\":0.8,\"top_matches\":[]}\n" +
+                "{\"submission_id\":\"s3\",\"verdict\":\"likely_novel\",\"novelty_score\":0.9,\"top_matches\":[]}\n" +
+                "{\"submission_id\":\"s4\",\"verdict\":\"likely_novel\",\"novelty_score\":0.7,\"top_matches\":[]}\n");
+        Files.writeString(dir.resolve("ask_new.jsonl"),
+                "{\"key\":\"s1\",\"skipped\":\"flagged\",\"flagged_by\":[\"run 1\"]}\n" +
+                "{\"key\":\"s2\",\"adds_new\":\"partly\",\"adds_what\":\"Only a slightly larger cohort.\"}\n" +
+                "{\"key\":\"s3\",\"adds_new\":\"yes\",\"adds_what\":\"A new method.\"}\n" +
+                "{\"key\":\"s4\",\"adds_new\":\"no\",\"adds_what\":\"Same study, same findings.\"}\n");
+
+        BatchSummary summary = report.build(dir.resolve("results.jsonl"), dir.resolve("submissions.jsonl"),
+                dir.resolve("ask_new.jsonl"), dir);
+
+        assertEquals(3, summary.getFlagged());
+        List<String> csv = Files.readAllLines(dir.resolve("flagged.csv"));
+        assertTrue(csv.get(0).endsWith(",llm_adds_new,llm_says"));
+        assertTrue(csv.get(1).startsWith("s1,possible_overlap"));
+        assertTrue(csv.get(2).startsWith("s4,likely_novel"));        // "no" before "partly"
+        assertTrue(csv.get(2).endsWith(",no,\"Same study, same findings.\""));
+        assertTrue(csv.get(3).startsWith("s2,likely_novel"));
+        // results.json carries the answers as novelty_q, the field the /compare page reads
+        assertTrue(Files.readString(dir.resolve("results.json")).contains("\"novelty_q\""));
+    }
 }

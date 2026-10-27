@@ -20,5 +20,10 @@ public record BatchDetail(
          * against prior years only, and the verdicts themselves are the only honest
          * source for that — it is stamped per report by the pipeline.
          */
-        Integer beforeYear) {
+        Integer beforeYear,
+        /**
+         * The 35B step's answers (yes / partly / no -> count), empty when the batch ran
+         * without it. Read from results.json, where the report merged them as novelty_q.
+         */
+        Map<String, Integer> llmCounts) {
 }

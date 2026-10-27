@@ -27,6 +27,15 @@ public class NoveltyProperties {
     private long pollIntervalMs = 3_000;
     /** Max time to wait for a single chunk before giving up (incident + resume later). */
     private long chunkMaxWaitMs = 1_800_000;  // 30 min
+    /**
+     * Submissions per chunk of the 35B "adds anything new?" step. Small: an unflagged
+     * abstract takes ~40 s, so 20 is up to ~15 min per chunk (flagged ones are skipped).
+     */
+    private int askChunkSize = 20;
+    /** External-task lock window for the ask step; extended while polling. */
+    private int askLockMs = 300_000;          // 5 min
+    /** Max time to wait for a single ask chunk (20 x ~90 s worst case, with headroom). */
+    private long askChunkMaxWaitMs = 3_600_000;  // 1 h
     /** Committee address that receives the completion summary. Empty = log only. */
     private String committeeEmail = "";
 }

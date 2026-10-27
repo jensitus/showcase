@@ -3,6 +3,7 @@ package org.service_b.workflow.screening.service;
 import lombok.extern.slf4j.Slf4j;
 import org.service_b.workflow.screening.client.NoveltyApiClient;
 import org.service_b.workflow.screening.config.NoveltyProperties;
+import org.service_b.workflow.screening.dto.AskOutcome;
 import org.service_b.workflow.screening.dto.BatchSummary;
 import org.service_b.workflow.screening.dto.ScreenOutcome;
 import org.service_b.workflow.screening.dto.Submission;
@@ -34,6 +35,7 @@ import java.util.UUID;
  *
  *   novelty_ingest  -> load the export, normalise to {id,title,abstract}, count
  *   novelty_screen  -> screen in chunks via NoveltyApiClient, checkpointing progress
+ *   novelty_ask_new -> (only with askNew) the 35B "adds anything new?" on the unflagged
  *   novelty_report  -> aggregate into results.json + a committee-facing flagged.csv
  *   novelty_notify  -> notify the committee (summary + report location)
  *
@@ -49,6 +51,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
     private final IngestService ingestService;
     private final ReportService reportService;
     private final ChunkScreeningService chunkScreeningService;
+    private final AskNewService askNewService;
     private final RestTemplate restTemplate;
     private final MailService mailService;
     private final Map<String, ExternalTaskConfig.TaskDefinition> taskDefinitions;
@@ -61,6 +64,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
                                  IngestService ingestService,
                                  ReportService reportService,
                                  ChunkScreeningService chunkScreeningService,
+                                 AskNewService askNewService,
                                  RestTemplate restTemplate,
                                  MailService mailService) {
         super(fetchAndLockService, cibSevenProperties, cibSevenRestClient);
@@ -69,6 +73,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
         this.ingestService = ingestService;
         this.reportService = reportService;
         this.chunkScreeningService = chunkScreeningService;
+        this.askNewService = askNewService;
         this.restTemplate = restTemplate;
         this.mailService = mailService;
         this.taskDefinitions = initializeTaskDefinitions();
@@ -125,7 +130,7 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
                     batchId,
                     workDir.resolve("submissions.jsonl"),
                     workDir.resolve("results.jsonl"),
-                    () -> extendLock(taskId),
+                    () -> extendLock(taskId, noveltyProperties.getScreenLockMs()),
                     strVarOrNull(response.getVariables(), "corpus"),
                     integerVar(response.getVariables(), "beforeYear"));
             Map<String, Object> out = new HashMap<>();
@@ -143,12 +148,59 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
         }
     }
 
+    /**
+     * The 35B "adds anything new?" step, only when the batch was started with askNew.
+     * ~40 s per unflagged abstract — a congress takes days — so like the screen step it
+     * takes its own lock, extends it while polling, and resumes from the last checkpoint.
+     */
+    @Scheduled(fixedRate = 30000)
+    public void askNew() {
+        Topic topic = new Topic();
+        topic.setTopicName("novelty_ask_new");
+        topic.setTenantIdIn(new String[]{noveltyProperties.getTenant()});
+        topic.setLockDuration(noveltyProperties.getAskLockMs());
+        FetchAndLock fetchAndLock = new FetchAndLock();
+        fetchAndLock.setWorkerId(cibSevenProperties.getWorkerId());
+        fetchAndLock.setMaxTasks(1);
+        fetchAndLock.setTopics(new Topic[]{topic});
+
+        FetchAndLockResponse response = fetchAndLockService.fetchAndLockExternalTask(fetchAndLock);
+        if (response == null || response.getId() == null) {
+            return;  // no ask task waiting
+        }
+        String taskId = response.getId();
+        String batchId = strVar(response.getVariables(), "batchId");
+        Path workDir = Paths.get(strVar(response.getVariables(), "workDir"));
+        try {
+            AskOutcome outcome = askNewService.run(
+                    batchId,
+                    workDir.resolve("submissions.jsonl"),
+                    workDir.resolve("results.jsonl"),
+                    workDir.resolve("ask_new.jsonl"),
+                    () -> extendLock(taskId, noveltyProperties.getAskLockMs()));
+            Map<String, Object> out = new HashMap<>();
+            out.put("asked", outcome.asked());
+            out.put("llmNothingNew", outcome.nothingNew());
+            out.put("llmPartlyNew", outcome.partlyNew());
+            out.put("llmErrors", outcome.errors());
+            cibSevenRestClient.completeExternalTask(taskId, out);
+            log.info("[novelty_batch] ask done for batch {}: {} asked, {} nothing new, {} partly new, {} errors",
+                    batchId, outcome.asked(), outcome.nothingNew(), outcome.partlyNew(), outcome.errors());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("[novelty_batch] ask interrupted for batch {} — lock will expire and resume", batchId);
+        } catch (Exception e) {
+            // leave the task locked to expire -> it is re-fetched and resumes from checkpoint
+            log.error("[novelty_batch] ask failed for batch {}: {}", batchId, e.getMessage(), e);
+        }
+    }
+
     /** Reset the external-task lock window so a multi-hour run keeps its lock. Best-effort. */
-    private void extendLock(String taskId) {
+    private void extendLock(String taskId, int lockMs) {
         try {
             Map<String, Object> body = new HashMap<>();
             body.put("workerId", cibSevenProperties.getWorkerId());
-            body.put("newDuration", noveltyProperties.getScreenLockMs());
+            body.put("newDuration", lockMs);
             restTemplate.postForEntity(
                     cibSevenProperties.getBaseUrl() + "/external-task/" + taskId + "/extendLock", body, Void.class);
         } catch (Exception e) {
@@ -184,7 +236,8 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
         log.info("[novelty_batch] build report for batch {}", batchId);
         try {
             BatchSummary summary = reportService.build(
-                    workDir.resolve("results.jsonl"), workDir.resolve("submissions.jsonl"), workDir);
+                    workDir.resolve("results.jsonl"), workDir.resolve("submissions.jsonl"),
+                    workDir.resolve("ask_new.jsonl"), workDir);  // absent unless askNew ran
             Map<String, Object> out = new HashMap<>();
             out.put("reportPath", workDir.resolve("flagged.csv").toString());
             out.put("flaggedCount", summary.getFlagged());
@@ -218,8 +271,9 @@ public class ScreeningBatchService extends AbstractExternalTaskService {
                 <html><body style="font-family: Arial, sans-serif; max-width: 600px;">
                   <h2>Abstract novelty screening complete</h2>
                   <p>Screened <strong>%d</strong> submissions against the historical corpus.
-                     <strong>%d</strong> were flagged as possible overlap or likely duplicate and
-                     are listed, most-suspicious first, in the attached report.</p>
+                     <strong>%d</strong> were flagged — as possible overlap or likely duplicate,
+                     or, where the larger model was asked, as adding nothing or only partly
+                     something new — and are listed, most-suspicious first, in the attached report.</p>
                   <p>Report: <code>%s</code></p>
                   <p style="color:#555;">This is triage evidence for human reviewers — never an
                      automatic accept/reject.</p>

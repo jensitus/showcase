@@ -257,6 +257,31 @@ python3 flagged_report.py --results <results>.jsonl --submissions <subs>.jsonl \
 The dashboard lists any directory under the work dir containing a `results.json`, so a
 completed run can be dropped in without the engine running at all.
 
+## The second step: ask the larger model ("adds anything new?")
+
+Add `"askNew": true` to the trigger and, after screening, the process asks the pipeline's
+35B model about every abstract screening let through (gateway "Ask the larger model?" →
+`novelty_ask_new`). "Nothing new" and "only partly new" both count as flagged: on the 2026
+congress that catches 92.4% of what three or more reviewers called "not new", against 64.8%
+from screening alone, at the price of flagging about half of all abstracts. (Those figures
+had screening against both earlier congresses and PubMed; a batch screens one corpus, so
+expect somewhat lower.)
+
+```bash
+curl -s -XPOST localhost:8080/api/screening/batch -H 'Content-Type: application/json' \
+  -d '{"exportPath":"/ABS/PATH/subs.jsonl","corpus":"congress-A2","beforeYear":2026,"askNew":true}'
+```
+
+- **It is slow:** ~40 s per unflagged abstract. The 200-abstract demo becomes ~1.5 h instead
+  of 4 min; a congress takes 2–3 days. Off by default for that reason.
+- **The pipeline must have `POST /ask-new`** (abstract-novelty MR !51). Both servers (8090 PubMed,
+  8092 congress) serve it after a restart; the model sees the closest matches of the run this
+  batch screened.
+- Chunks of 20 (`novelty.ask-chunk-size`), checkpointed under `<batchId>:ask`, so an
+  interrupted run resumes. Answers land in `ask_new.jsonl`; the report merges them into
+  `results.json` (`novelty_q`) and adds `llm_adds_new` / `llm_says` to `flagged.csv`.
+- Rows with an `error` failed twice in the pipeline; they are counted (`llmErrors`) and not flagged.
+
 ## Gotchas (each cost a debugging round once)
 - **`exportPath` is resolved relative to the app's working directory**, which — when started
   the way this runbook says (`cd workflow && ./mvnw spring-boot:run`) — is the **`workflow/`
