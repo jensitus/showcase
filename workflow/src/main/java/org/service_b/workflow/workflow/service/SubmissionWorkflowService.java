@@ -24,9 +24,13 @@ public class SubmissionWorkflowService {
 
     private static final String SUBMISSION_PROCESS_DEFINITION_KEY = "abstract_submission_lifecycle";
     private static final String SUBMISSION_TENANT_ID = "cfp";
-    private static final String REVIEW_DECISION = "reviewDecision";
-    private static final String REVIEWER_NOTES = "reviewerNotes";
-    private static final String[] REVIEW_OPTIONS = {"APPROVED", "REJECTED"};
+    // ut_receive_submission is a formal check (complete, in scope, not a duplicate entry) —
+    // the reviews come later. The task view labels a field by its key: "Validation Result".
+    private static final String VALIDATION_RESULT = "validationResult";
+    private static final String VALIDATION_NOTES = "validationNotes";
+    private static final String[] VALIDATION_OPTIONS = {"VALID", "INVALID"};
+    /** The field before it was renamed; tasks created back then still complete with it. */
+    private static final String LEGACY_REVIEW_DECISION = "reviewDecision";
 
     private final SubmissionService submissionService;
     private final RestClientService restClientService;
@@ -77,8 +81,8 @@ public class SubmissionWorkflowService {
         Submission submission = submissionService.getSubmission(submissionId);
 
         Map<String, Object> additionalInfo = buildSubmissionAdditionalInfo(submission);
-        Map<String, Object> config = buildReviewConfig();
-        Map<String, Object> configData = buildReviewConfigData();
+        Map<String, Object> config = buildValidationConfig();
+        Map<String, Object> configData = buildValidationConfigData();
 
         taskDto.setAssignee(initiator);
         taskDto.setAdditionalInfo(hashMapConverter.convertToDatabaseColumn(additionalInfo));
@@ -113,26 +117,26 @@ public class SubmissionWorkflowService {
         return content;
     }
 
-    private Map<String, Object> buildReviewConfig() {
+    private Map<String, Object> buildValidationConfig() {
         Map<String, Object> config = new HashMap<>();
-        config.put(REVIEW_DECISION, "??");
-        config.put(REVIEWER_NOTES, "");
+        config.put(VALIDATION_RESULT, "??");
+        config.put(VALIDATION_NOTES, "");
         return config;
     }
 
-    private Map<String, Object> buildReviewConfigData() {
+    private Map<String, Object> buildValidationConfigData() {
         Map<String, Object> configData = new HashMap<>();
 
         Map<String, Object> decisionField = new HashMap<>();
         decisionField.put("position", 1);
         decisionField.put("type", "select");
-        decisionField.put("values", REVIEW_OPTIONS);
-        configData.put(REVIEW_DECISION, decisionField);
+        decisionField.put("values", VALIDATION_OPTIONS);
+        configData.put(VALIDATION_RESULT, decisionField);
 
         Map<String, Object> notesField = new HashMap<>();
         notesField.put("position", 2);
         notesField.put("type", "textarea");
-        configData.put(REVIEWER_NOTES, notesField);
+        configData.put(VALIDATION_NOTES, notesField);
 
         return configData;
     }
@@ -543,7 +547,8 @@ public class SubmissionWorkflowService {
 
     public Map<String, Object> mapReceiveSubmissionVars(Map<String, Object> vars) {
         Map<String, Object> mapped = new HashMap<>(vars);
-        mapped.put("submission_valid", "APPROVED".equals(vars.get(REVIEW_DECISION)));
+        mapped.put("submission_valid", "VALID".equals(vars.get(VALIDATION_RESULT))
+                || "APPROVED".equals(vars.get(LEGACY_REVIEW_DECISION)));
         return mapped;
     }
 

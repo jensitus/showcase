@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,6 +101,27 @@ class SubmissionWorkflowServiceTest {
             assertThat(processService.isActivateCalled())
                     .as("activateProcess must not be called when engine failed")
                     .isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("mapReceiveSubmissionVars")
+    class ReceiveSubmissionTests {
+
+        @Test
+        @DisplayName("the validation result decides submission_valid")
+        void validationResult() {
+            assertThat(service.mapReceiveSubmissionVars(Map.of("validationResult", "VALID")))
+                    .containsEntry("submission_valid", true);
+            assertThat(service.mapReceiveSubmissionVars(Map.of("validationResult", "INVALID")))
+                    .containsEntry("submission_valid", false);
+        }
+
+        @Test
+        @DisplayName("a task created before the rename still completes with reviewDecision")
+        void legacyReviewDecision() {
+            assertThat(service.mapReceiveSubmissionVars(Map.of("reviewDecision", "APPROVED")))
+                    .containsEntry("submission_valid", true);
         }
     }
 
