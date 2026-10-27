@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  What the engine deploys at startup. Each archive is one deployment; a tenantId puts its
+  processes under that tenant, which is how the workflow backend starts them
+  (cfp: SubmissionWorkflowService, screening: ScreeningController).
+
+  Scanning is off everywhere: with it on, every archive would pick up every .bpmn on the
+  classpath and deploy it again without the tenant. A new .bpmn must be listed here.
+
+  The engine's duplicate filter redeploys an archive only when one of its files changed,
+  so a restart without changes creates no new versions. Running instances stay on the
+  version they started with.
+-->
+<process-application
+    xmlns="http://www.camunda.org/schema/1.0/ProcessApplication"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- Call for papers: an abstract from submission to presentation. -->
+  <process-archive name="cfp" tenantId="cfp">
+    <resource>processes/cfp/abstract-submission.bpmn</resource>
+    <properties>
+      <property name="isDeleteUponUndeploy">false</property>
+      <property name="isScanForProcessDefinitions">false</property>
+    </properties>
+  </process-archive>
+
+  <!-- Novelty batch screening: ingest -> screen -> (35B) -> report -> notify. -->
+  <process-archive name="screening" tenantId="screening">
+    <resource>processes/screening/novelty_batch.bpmn</resource>
+    <properties>
+      <property name="isDeleteUponUndeploy">false</property>
+      <property name="isScanForProcessDefinitions">false</property>
+    </properties>
+  </process-archive>
+
+  <!-- The engine's own demo processes, without a tenant. The name is the one the default
+       archive had (the deployment name), so they are not deployed again as new versions. -->
+  <process-archive name="cibdemoApplication">
+    <resource>cib-demo.bpmn</resource>
+    <resource>service-b-todo.bpmn</resource>
+    <properties>
+      <property name="isDeleteUponUndeploy">false</property>
+      <property name="isScanForProcessDefinitions">false</property>
+    </properties>
+  </process-archive>
+
+</process-application>

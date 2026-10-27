@@ -99,9 +99,9 @@ cd cibdemo   && ./mvnw spring-boot:run     # CIB Seven :7001 (NOT in docker-comp
 cd ../workflow && ./mvnw spring-boot:run   # app :8080; Liquibase creates screening_chunk
 cd ../frontend && ng serve --port 5173     # UI :5173 (see port note below)
 ```
-Then **deploy `novelty_batch.bpmn` under tenant `screening`** (via the deploy endpoint/UI) —
-but note the engine's Postgres volume persists deployments, so on an existing box it is
-usually already there. Check first:
+The engine deploys `novelty_batch.bpmn` under tenant `screening` itself at startup
+(`cibdemo/src/main/resources/META-INF/processes.xml`), and again only when the file changed.
+To check:
 
 ```bash
 curl -s localhost:7001/engine-rest/process-definition/key/novelty_batch/tenant-id/screening
@@ -296,7 +296,8 @@ curl -s -XPOST localhost:8080/api/screening/batch -H 'Content-Type: application/
 - **CIB Seven (:7001)** is the one piece not in docker-compose — it is the `cibdemo/` module;
   stand it up first. Its Cockpit is at <http://localhost:7001/camunda/app/welcome/default/>
   (`demo`/`demo`) — useful to watch the token move or retry a failed external task.
-- Deploy the BPMN under tenant **`screening`**, or the workers have nothing to pick up.
+- The BPMN must be deployed under tenant **`screening`**, or the workers have nothing to pick up;
+  the engine does that at startup from `processes.xml` — a BPMN deployed by hand without the tenant does not count.
 - **Frontend port.** The UI calls `http://localhost:8080` absolutely, and `SecurityConfig`
   allow-lists only origins **3000 / 4200 / 5173**. If something else already holds 4200, serve
   on **5173** rather than editing CORS.

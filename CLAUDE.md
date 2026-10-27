@@ -56,7 +56,10 @@ CIB Seven must be started separately (it is not in docker-compose.yaml). Default
 1. **Abstract Submission** (`abstract-submission.bpmn`) — process key `abstract_submission_lifecycle`, tenant `cfp`
 2. **Novelty Batch Screening** (`novelty_batch.bpmn`) — process key `novelty_batch`, tenant `screening`
 
-Both BPMN files live in `workflow/src/main/resources/processes8/`.
+Both BPMN files live in the engine module, `cibdemo/src/main/resources/processes/<tenant>/`,
+and CIB Seven deploys them at startup under their tenant, as listed in
+`cibdemo/src/main/resources/META-INF/processes.xml` (scanning is off: a new .bpmn must be
+added there; `ProcessesXmlTest` fails otherwise). Only changed files are redeployed.
 
 The insurance showcase (process `insurance_showcase`, tenant `insurance`, with the customer
 module) was removed; its last state is the tag `insurance-showcase-v1` (also branch
